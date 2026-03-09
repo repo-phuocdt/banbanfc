@@ -32,6 +32,8 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // Refresh session - no route blocking, all pages are public (view-only)
+  // Mutations are protected by requireAdmin() in server actions + Supabase RLS
   await supabase.auth.getUser()
 
   return response

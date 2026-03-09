@@ -13,9 +13,10 @@ import { deleteTransaction } from '@/app/quan-ly-quy/thu-chi/actions'
 interface Props {
   transactions: (TransactionWithMember & { running_balance: number })[]
   onEdit: (t: TransactionWithMember) => void
+  isAuthenticated?: boolean
 }
 
-export function TransactionTable({ transactions, onEdit }: Props) {
+export function TransactionTable({ transactions, onEdit, isAuthenticated = false }: Props) {
   const { showToast } = useToast()
   const [deleteTarget, setDeleteTarget] = useState<TransactionWithMember | null>(null)
   const [loading, setLoading] = useState(false)
@@ -52,7 +53,7 @@ export function TransactionTable({ transactions, onEdit }: Props) {
               <th className="px-3 py-3">Nội dung</th>
               <th className="px-3 py-3">Người</th>
               <th className="px-3 py-3 text-right">Số dư lũy kế</th>
-              <th className="px-3 py-3 w-20"></th>
+              {isAuthenticated && <th className="px-3 py-3 w-20"></th>}
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -80,22 +81,24 @@ export function TransactionTable({ transactions, onEdit }: Props) {
                     type={t.running_balance >= 0 ? 'income' : 'expense'}
                   />
                 </td>
-                <td className="px-3 py-2.5">
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => onEdit(t)}
-                      className="rounded p-1 text-gray-400 hover:bg-white hover:text-gray-600"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(t)}
-                      className="rounded p-1 text-gray-400 hover:bg-white hover:text-red-600"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </td>
+                {isAuthenticated && (
+                  <td className="px-3 py-2.5">
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => onEdit(t)}
+                        className="rounded p-1 text-gray-400 hover:bg-white hover:text-gray-600"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(t)}
+                        className="rounded p-1 text-gray-400 hover:bg-white hover:text-red-600"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

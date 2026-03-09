@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { getTransactions, getMembersForDropdown } from './actions'
 import { TransactionPage } from '@/components/transactions/transaction-page'
 import { Skeleton } from '@/components/ui/skeleton'
+import { createClient } from '@/lib/supabase/server'
 
 function TransactionSkeleton() {
   return (
@@ -15,11 +16,13 @@ function TransactionSkeleton() {
 }
 
 async function TransactionLoader() {
-  const [transactions, members] = await Promise.all([
+  const supabase = createClient()
+  const [transactions, members, { data: { user } }] = await Promise.all([
     getTransactions(),
     getMembersForDropdown(),
+    supabase.auth.getUser(),
   ])
-  return <TransactionPage transactions={transactions} members={members} />
+  return <TransactionPage transactions={transactions} members={members} isAuthenticated={!!user} />
 }
 
 export default function ThuChiPage() {

@@ -14,9 +14,10 @@ import { useToast } from '@/components/ui/toast'
 
 interface MemberTableProps {
   members: MemberWithTotal[]
+  isAuthenticated?: boolean
 }
 
-export function MemberTable({ members }: MemberTableProps) {
+export function MemberTable({ members, isAuthenticated = false }: MemberTableProps) {
   const { showToast } = useToast()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -90,13 +91,15 @@ export function MemberTable({ members }: MemberTableProps) {
             <option value="paused">Tạm nghỉ</option>
           </select>
         </div>
-        <button
-          onClick={() => { setEditing(null); setModalOpen(true) }}
-          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          <Plus size={16} />
-          Thêm thành viên
-        </button>
+        {isAuthenticated && (
+          <button
+            onClick={() => { setEditing(null); setModalOpen(true) }}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Plus size={16} />
+            Thêm thành viên
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -113,7 +116,7 @@ export function MemberTable({ members }: MemberTableProps) {
                 <th className="px-4 py-3">Ngày tham gia</th>
                 <th className="px-4 py-3 text-right">Tổng đã đóng</th>
                 <th className="px-4 py-3">Ghi chú</th>
-                <th className="px-4 py-3 w-32"></th>
+                {isAuthenticated && <th className="px-4 py-3 w-32"></th>}
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -126,39 +129,45 @@ export function MemberTable({ members }: MemberTableProps) {
                       {member.name}
                     </td>
                     <td className="px-4 py-3">
-                      <select
-                        value={member.status}
-                        onChange={e => handleStatusChange(member.id, e.target.value)}
-                        className="rounded border bg-transparent px-1 py-0.5 text-xs"
-                      >
-                        <option value="active">Đang hoạt động</option>
-                        <option value="inactive">Đã nghỉ</option>
-                        <option value="paused">Tạm nghỉ</option>
-                      </select>
+                      {isAuthenticated ? (
+                        <select
+                          value={member.status}
+                          onChange={e => handleStatusChange(member.id, e.target.value)}
+                          className="rounded border bg-transparent px-1 py-0.5 text-xs"
+                        >
+                          <option value="active">Đang hoạt động</option>
+                          <option value="inactive">Đã nghỉ</option>
+                          <option value="paused">Tạm nghỉ</option>
+                        </select>
+                      ) : (
+                        <Badge status={member.status} />
+                      )}
                     </td>
                     <td className="px-4 py-3"><DateDisplay date={member.joined_at} /></td>
                     <td className="px-4 py-3 text-right">
                       <CurrencyDisplay amount={member.total_contributed} type="income" />
                     </td>
                     <td className="px-4 py-3 text-gray-500">{member.note || '—'}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => { setEditing(member); setModalOpen(true) }}
-                          className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                          title="Sửa"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(member)}
-                          className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                          title="Xóa"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
+                    {isAuthenticated && (
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => { setEditing(member); setModalOpen(true) }}
+                            className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                            title="Sửa"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(member)}
+                            className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                            title="Xóa"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 )
               })}

@@ -11,9 +11,10 @@ import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/utils/constants'
 interface Props {
   transactions: TransactionWithMember[]
   members: Pick<Member, 'id' | 'name'>[]
+  isAuthenticated?: boolean
 }
 
-export function TransactionPage({ transactions, members }: Props) {
+export function TransactionPage({ transactions, members, isAuthenticated = false }: Props) {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [memberFilter, setMemberFilter] = useState('')
@@ -50,7 +51,7 @@ export function TransactionPage({ transactions, members }: Props) {
     ? INCOME_CATEGORIES
     : typeFilter === 'expense'
     ? EXPENSE_CATEGORIES
-    : [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES]
+    : Array.from(new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES]))
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
@@ -107,19 +108,22 @@ export function TransactionPage({ transactions, members }: Props) {
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
-            <button
-              onClick={() => { setEditing(null); setModalOpen(true) }}
-              className="ml-auto flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              <Plus size={16} />
-              Thêm giao dịch
-            </button>
+            {isAuthenticated && (
+              <button
+                onClick={() => { setEditing(null); setModalOpen(true) }}
+                className="ml-auto flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                <Plus size={16} />
+                Thêm giao dịch
+              </button>
+            )}
           </div>
         </div>
 
         <TransactionTable
           transactions={displayed}
           onEdit={t => { setEditing(t); setModalOpen(true) }}
+          isAuthenticated={isAuthenticated}
         />
       </div>
 

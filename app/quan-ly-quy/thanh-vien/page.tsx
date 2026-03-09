@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { getMembers } from './actions'
 import { MemberTable } from '@/components/members/member-table'
 import { Skeleton } from '@/components/ui/skeleton'
+import { createClient } from '@/lib/supabase/server'
 
 function MemberTableSkeleton() {
   return (
@@ -15,8 +16,12 @@ function MemberTableSkeleton() {
 }
 
 async function MemberTableLoader() {
-  const members = await getMembers()
-  return <MemberTable members={members} />
+  const supabase = createClient()
+  const [members, { data: { user } }] = await Promise.all([
+    getMembers(),
+    supabase.auth.getUser(),
+  ])
+  return <MemberTable members={members} isAuthenticated={!!user} />
 }
 
 export default function ThanhVienPage() {

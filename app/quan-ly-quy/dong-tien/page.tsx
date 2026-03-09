@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { getContributions, getActiveMembers } from './actions'
 import { ContributionMatrix } from '@/components/contributions/contribution-matrix'
 import { Skeleton } from '@/components/ui/skeleton'
+import { createClient } from '@/lib/supabase/server'
 
 function MatrixSkeleton() {
   return (
@@ -15,11 +16,13 @@ function MatrixSkeleton() {
 }
 
 async function MatrixLoader() {
-  const [contributions, members] = await Promise.all([
+  const supabase = createClient()
+  const [contributions, members, { data: { user } }] = await Promise.all([
     getContributions(),
     getActiveMembers(),
+    supabase.auth.getUser(),
   ])
-  return <ContributionMatrix contributions={contributions} members={members} />
+  return <ContributionMatrix contributions={contributions} members={members} isAuthenticated={!!user} />
 }
 
 export default function DongTienPage() {

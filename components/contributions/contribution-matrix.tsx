@@ -8,9 +8,10 @@ import { PaymentModal } from './payment-modal'
 interface Props {
   contributions: Contribution[]
   members: Member[]
+  isAuthenticated?: boolean
 }
 
-export function ContributionMatrix({ contributions, members }: Props) {
+export function ContributionMatrix({ contributions, members, isAuthenticated = false }: Props) {
   const [statusFilter, setStatusFilter] = useState('all')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
@@ -27,11 +28,28 @@ export function ContributionMatrix({ contributions, members }: Props) {
     return map
   }, [contributions])
 
-  // Derive months from data
+  // Generate months from earliest data to current month
   const months = useMemo(() => {
-    const set = new Set<string>()
-    contributions.forEach(c => set.add(c.month))
-    return Array.from(set).sort()
+    if (contributions.length === 0) {
+      const now = new Date()
+      return [`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`]
+    }
+    const allMonths = contributions.map(c => c.month)
+    const earliest = allMonths.sort()[0]
+    const now = new Date()
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const end = currentMonth > allMonths[allMonths.length - 1] ? currentMonth : allMonths[allMonths.length - 1]
+
+    const result: string[] = []
+    const [startY, startM] = earliest.split('-').map(Number)
+    const [endY, endM] = end.split('-').map(Number)
+    let y = startY, m = startM
+    while (y < endY || (y === endY && m <= endM)) {
+      result.push(`${y}-${String(m).padStart(2, '0')}`)
+      m++
+      if (m > 12) { m = 1; y++ }
+    }
+    return result
   }, [contributions])
 
   // Filter and sort members
@@ -47,6 +65,7 @@ export function ContributionMatrix({ contributions, members }: Props) {
   }, [members, statusFilter])
 
   const handleCellClick = (member: Member, month: string) => {
+    if (!isAuthenticated) return
     const contrib = matrix.get(member.id)?.get(month)
     setSelectedMember(member)
     setSelectedMonth(month)
@@ -113,10 +132,10 @@ export function ContributionMatrix({ contributions, members }: Props) {
                       <td
                         key={month}
                         onClick={() => handleCellClick(member, month)}
-                        className={`cursor-pointer px-2 py-2 text-center transition-colors ${
+                        className={`px-2 py-2 text-center transition-colors ${isAuthenticated ? 'cursor-pointer' : 'cursor-default'} ${
                           contrib
-                            ? 'bg-income-bg text-income-text font-medium hover:bg-green-200'
-                            : 'bg-gray-50 text-gray-300 hover:bg-gray-100'
+                            ? `bg-income-bg text-income-text font-medium ${isAuthenticated ? 'hover:bg-green-200' : ''}`
+                            : `bg-gray-50 text-gray-300 ${isAuthenticated ? 'hover:bg-gray-100' : ''}`
                         }`}
                       >
                         {contrib ? formatCurrency(contrib.amount) : '—'}
