@@ -13,6 +13,7 @@ export async function getTransactions(): Promise<TransactionWithMember[]> {
     .from('transactions')
     .select('*, members(name)')
     .order('date', { ascending: true, nullsFirst: true })
+    .order('created_at', { ascending: true })
 
   if (error) throw new Error(error.message)
 

@@ -19,7 +19,7 @@ async function DashboardContent() {
     supabase.from('transactions').select('amount').eq('type', 'expense'),
     supabase.from('members').select('id').eq('status', 'active'),
     supabase.from('transactions').select('date, type, amount').order('date'),
-    supabase.from('transactions').select('*, members(name)').order('date', { ascending: false }).limit(10),
+    supabase.from('transactions').select('*, members(name)').order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10),
   ])
 
   const totalIncome = (incomeRes.data || []).reduce((s, r) => s + r.amount, 0)
