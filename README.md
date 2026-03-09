@@ -1,273 +1,187 @@
-# Quản Lý Quỹ Đội Bóng
+# Quản Lý Quỹ Đội Bóng ⚽
 
-A modern web application for managing Vietnamese amateur football team finances. Track member contributions, monitor expenses, and visualize fund flows with ease.
+Ứng dụng quản lý tài chính cho đội bóng đá phong trào. Theo dõi đóng quỹ, thu chi, và tổng quan tài chính — tất cả trong một giao diện đơn giản, dễ sử dụng.
 
-[Vietnamese] (English docs in `/docs`)
+> **Ban Ban FC** — Được xây dựng bởi đội bóng, cho đội bóng.
 
-## Overview
+## Screenshots
 
-**Quản Lý Quỹ Đội Bóng** (Football Team Fund Management) is an internal tool built for amateur football teams to:
+### Đăng nhập
+Bảo mật bằng tài khoản admin — chỉ người được phân quyền mới có thể thao tác dữ liệu.
 
-- Manage team membership with status tracking
-- Record and track monthly member contributions
-- Maintain comprehensive income/expense ledger with running balance
-- Visualize financial data with interactive charts
-- Quickly access key metrics via dashboard
+![Đăng nhập](/public/screenshots/01-login.png)
 
-## Quick Start
+### Tổng quan (Dashboard)
+Xem nhanh tình hình tài chính: tổng thu, tổng chi, số dư còn lại, biểu đồ thu chi theo tháng và các giao dịch gần đây.
 
-### Prerequisites
-
-- Node.js 18+ (using nvm recommended)
-- Supabase project (free tier sufficient)
-- Environment variables (see setup)
-
-### Setup
-
-1. Clone and install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Configure environment variables:
-   ```bash
-   cp .env.local.example .env.local
-   ```
-   Then add your Supabase credentials:
-   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Public anon key
-   - `SUPABASE_SERVICE_ROLE_KEY`: Service role key (for server-side auth)
-
-3. Create database tables (SQL file available in project):
-   ```sql
-   -- Run Supabase SQL queries from /lib/supabase/schema.sql
-   ```
-
-4. Start development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open http://localhost:3000 and login
-
-### Deploy
-
-```bash
-npm run build
-npm start
-```
-
-## Tech Stack
-
-- **Frontend**: Next.js 14 App Router, React 18, TypeScript
-- **Styling**: Tailwind CSS v3
-- **Forms**: React Hook Form + Zod validation
-- **Database**: Supabase (PostgreSQL) with RLS
-- **Charts**: Recharts
-- **Auth**: Supabase Authentication (admin-only)
-- **Date/Time**: date-fns with Vietnamese locale
-
-## Key Features
-
-### 1. Dashboard (`/quan-ly-quy`)
-- **Summary Cards**: Total income, expenses, balance, active member count
-- **Monthly Chart**: Income vs expense trend visualization
-- **Recent Transactions**: 10 latest transactions for quick overview
-
-### 2. Members (`/quan-ly-quy/thanh-vien`)
-- Full member CRUD with search/filter by name and status
-- Status management: Active (Đang hoạt động), Paused (Tạm nghỉ), Inactive (Đã nghỉ)
-- Soft delete: Inactive members excluded from dropdowns but retained for history
-- View total contributions per member
-
-### 3. Contribution Matrix (`/quan-ly-quy/dong-tien`)
-- Spreadsheet-like view: members × months
-- **Sticky columns**: Name always visible when scrolling months
-- Click unpaid cells to record payment (default 200,000 VNĐ)
-- Auto-creates transaction entry when contribution logged
-- Responsive with horizontal scroll on mobile
-
-### 4. Transaction Ledger (`/quan-ly-quy/thu-chi`)
-- Complete income/expense log with running balance calculation
-- Color-coded rows: green for income, red for expenses
-- Filters: date range, member, type, category
-- Rich category system (8 income + 8 expense categories)
-- Summary panel: totals and transaction count
-- Sorted newest first, balance correctly computed
-
-### 5. Authentication
-- Admin-only access via Supabase email/password
-- Middleware protects all `/quan-ly-quy/*` routes
-- Auto-redirect to login for unauthorized access
-
-## File Structure
-
-```
-banbanfc/
-├── app/                          # Next.js app router
-│   ├── layout.tsx               # Root layout
-│   ├── page.tsx                 # Redirect to dashboard
-│   ├── login/page.tsx           # Login page
-│   └── quan-ly-quy/             # Main app routes
-│       ├── layout.tsx           # Sidebar + layout
-│       ├── page.tsx             # Dashboard
-│       ├── thanh-vien/          # Members
-│       ├── dong-tien/           # Contributions
-│       └── thu-chi/             # Transactions
-├── components/                   # React components
-│   ├── ui/                      # Base UI (badge, modal, etc)
-│   ├── layout/                  # Sidebar, breadcrumb
-│   ├── dashboard/               # Dashboard widgets
-│   ├── members/                 # Member table & forms
-│   ├── contributions/           # Contribution matrix
-│   └── transactions/            # Transaction ledger
-├── lib/                          # Utilities & config
-│   ├── types/                   # TypeScript types
-│   ├── auth/                    # Authentication
-│   ├── supabase/                # Supabase clients
-│   ├── utils/                   # Formatting, constants
-│   └── validations/             # Zod schemas
-├── docs/                         # Documentation
-├── middleware.ts                 # Auth middleware
-└── package.json
-```
-
-## Architecture Patterns
-
-### Server Components + Server Actions
-- Page components fetch data server-side
-- Interactive components are Client Components (`use client`)
-- Data mutations via Server Actions with `requireAdmin()` guard
-- Result type: `ActionResult<T>` for consistent error handling
-
-### Type-Safe API
-All database types defined in `/lib/types/database.ts`:
-- `Member`: Team member with status
-- `Contribution`: Monthly payment tracking
-- `Transaction`: Income/expense ledger entry
-
-### Validation
-All forms use Zod schemas in `/lib/validations/schemas.ts`:
-- `memberSchema`: name, status, optional note
-- `contributionSchema`: member_id, month, amount
-- `transactionSchema`: type, amount, category, optional member
-
-### Soft Deletes
-Members are soft-deleted (status='deleted'), preserving historical data while excluding from active lists.
-
-### Auto-Create Transactions
-When a contribution is created, system automatically creates corresponding transaction entry for ledger accuracy.
-
-## Code Standards
-
-- **No inline styles**: Tailwind CSS only
-- **Component size**: Under 200 LOC per file (split as needed)
-- **Error handling**: Try-catch + ActionResult type
-- **Security**: RLS enabled, authenticated mutations, no public write
-- **Performance**: Parallel data fetches, dynamic imports for charts
-- **Naming**: snake_case for DB columns, camelCase for TypeScript
-
-## Database Schema
-
-**Members Table**
-- `id` (uuid, pk)
-- `name` (text, unique)
-- `status` (enum: active, inactive, paused, deleted)
-- `joined_at` (timestamp)
-- `note` (text, nullable)
-- `created_at`, `updated_at`
-
-**Contributions Table**
-- `id` (uuid, pk)
-- `member_id` (uuid, fk → members)
-- `month` (text, 'YYYY-MM' format)
-- `amount` (integer)
-- `paid_at` (timestamp, nullable)
-- `created_at`
-
-**Transactions Table**
-- `id` (uuid, pk)
-- `date` (timestamp, nullable)
-- `type` (enum: income, expense)
-- `amount` (integer)
-- `category` (text)
-- `description` (text)
-- `member_id` (uuid, nullable, fk → members)
-- `contribution_id` (uuid, nullable, fk → contributions)
-- `created_at`
-
-## Common Tasks
-
-### Add New Member
-1. Navigate to "Thành viên" page
-2. Click "Thêm thành viên"
-3. Fill name, select status, optional note
-4. Submit
-
-### Record Payment
-1. Go to "Đóng tiền" page
-2. Find member row and payment month column
-3. Click unpaid cell (empty or light)
-4. Confirm amount (default 200,000) and save
-
-### Add Transaction
-1. Navigate to "Thu chi" page
-2. Click "Thêm giao dịch"
-3. Select date, type (income/expense), amount, category
-4. Optional: attach to member
-5. Submit
-
-### Export/Backup
-Currently manual export via Supabase dashboard. Future: Add CSV/Excel export.
-
-## Troubleshooting
-
-**Login redirects but stays on /login**
-- Check Supabase credentials in `.env.local`
-- Verify user exists in Supabase Auth
-- Check middleware.ts is running (browser console)
-
-**Contribution changes don't appear**
-- Refresh page (client-side cache)
-- Check Supabase RLS policies allow your user writes
-- Verify contribution_id is properly set
-
-**Charts not rendering**
-- Chart is dynamically loaded (client-side)
-- Check browser console for errors
-- Ensure data exists for date range
-
-**Running balance incorrect**
-- Transactions must have `date` field
-- Balance assumes transactions sorted by date
-- Check for NULL dates in data
-
-## Performance Tips
-
-- Dashboard loads in parallel: income, expenses, members, chart data
-- Contribution matrix is virtualized for large member counts
-- Member table uses filters client-side for fast searching
-- Chart is dynamic import (lazy loaded)
-
-## Roadmap
-
-- Export to Excel/CSV
-- Bulk import members (CSV)
-- SMS/Zalo notifications for contributions
-- Monthly reconciliation reports
-- Photo receipts for transactions
-- Expense approval workflow
-
-## Support
-
-For bug reports or feature requests, contact team lead or check plan documents in `/plans`.
-
-## License
-
-Internal use only (Vietnamese amateur football team).
+![Dashboard](/public/screenshots/02-dashboard.png)
 
 ---
 
-**Latest Update**: March 9, 2026
-**Maintained By**: Development team
-**Documentation**: See `/docs/` folder
+### Phân quyền: Admin vs Thành viên
+
+Ứng dụng phân biệt rõ 2 chế độ xem:
+
+| | Thành viên (chưa đăng nhập) | Admin (đã đăng nhập) |
+|---|---|---|
+| **Xem dữ liệu** | Xem được tất cả | Xem được tất cả |
+| **Thêm/Sửa/Xóa** | Không có nút thao tác | Đầy đủ nút Thêm, Sửa, Xóa |
+| **Đổi trạng thái** | Chỉ xem badge | Dropdown thay đổi trực tiếp |
+| **Ghi nhận đóng tiền** | Chỉ xem bảng | Click ô trống để ghi nhận |
+| **Sidebar** | Hiện "Đăng nhập" | Hiện "Đăng xuất" |
+
+#### Thành viên — Xem danh sách (chỉ đọc)
+Không có nút "Thêm", không có icon sửa/xóa, trạng thái hiển thị dạng badge.
+
+![Thành viên - Public](/public/screenshots/03-thanh-vien.png)
+
+#### Admin — Quản lý thành viên
+Có nút "+ Thêm thành viên", dropdown đổi trạng thái trực tiếp, icon sửa/xóa mỗi dòng.
+
+![Thành viên - Admin](/public/screenshots/07-admin-thanh-vien.png)
+
+#### Admin — Thêm thành viên mới
+Form modal nhập họ tên, chọn trạng thái và ghi chú.
+
+![Thêm thành viên](/public/screenshots/08-admin-them-thanh-vien-modal.png)
+
+---
+
+#### Thành viên — Xem bảng đóng tiền (chỉ đọc)
+Xem ai đã đóng tháng nào, nhưng không thao tác được.
+
+![Đóng tiền - Public](/public/screenshots/04-dong-tien.png)
+
+#### Admin — Bảng đóng tiền + Ghi nhận thanh toán
+Admin có nút "+" thêm tháng mới. Click vào ô trống mở modal ghi nhận đóng tiền.
+
+![Đóng tiền - Admin](/public/screenshots/09-admin-dong-tien.png)
+
+#### Admin — Ghi nhận đóng tiền
+Chọn tháng, số tiền (mặc định 200.000), ghi chú. Hệ thống tự tạo giao dịch thu tương ứng.
+
+![Ghi nhận đóng tiền](/public/screenshots/10-admin-ghi-nhan-dong-tien-modal.png)
+
+---
+
+#### Thành viên — Xem sổ thu chi (chỉ đọc)
+Xem toàn bộ giao dịch và số dư, nhưng không thêm/sửa/xóa được.
+
+![Thu chi - Public](/public/screenshots/05-thu-chi.png)
+
+#### Admin — Sổ thu chi + Thao tác
+Admin có nút "+ Thêm giao dịch", icon sửa/xóa mỗi dòng.
+
+![Thu chi - Admin](/public/screenshots/11-admin-thu-chi.png)
+
+#### Admin — Thêm giao dịch
+Form đầy đủ: ngày, loại (Thu/Chi), số tiền, danh mục, nội dung, thành viên liên quan.
+
+![Thêm giao dịch](/public/screenshots/12-admin-them-giao-dich-modal.png)
+
+---
+
+### Giao diện Mobile
+Responsive hoàn toàn — hoạt động mượt mà trên điện thoại.
+
+![Mobile](/public/screenshots/06-mobile-dashboard.png)
+
+## Tính năng chính
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Dashboard** | Tổng thu, tổng chi, số dư, biểu đồ theo tháng, giao dịch gần đây |
+| **Thành viên** | CRUD, tìm kiếm, lọc trạng thái, xem tổng đã đóng |
+| **Đóng tiền** | Ma trận thành viên × tháng, ghi nhận nhanh, tự tạo giao dịch |
+| **Thu chi** | Sổ cái đầy đủ, số dư lũy kế, bộ lọc đa chiều, 16 danh mục |
+| **Bảo mật** | Đăng nhập admin, RLS trên database, xác thực mọi thao tác ghi |
+| **Responsive** | Hoạt động tốt trên desktop, tablet và mobile |
+
+## Tech Stack
+
+- **Framework**: Next.js 14 (App Router) + React 18 + TypeScript
+- **Styling**: Tailwind CSS v3
+- **Database**: Supabase (PostgreSQL + Row Level Security)
+- **Auth**: Supabase Authentication
+- **Forms**: React Hook Form + Zod validation
+- **Charts**: Recharts
+- **Date**: date-fns (Vietnamese locale)
+
+## Cài đặt
+
+### Yêu cầu
+- Node.js 18+
+- Supabase project (free tier đủ dùng)
+
+### Bước 1: Clone & cài dependencies
+```bash
+git clone <repo-url>
+cd banbanfc
+npm install
+```
+
+### Bước 2: Cấu hình môi trường
+```bash
+cp .env.local.example .env.local
+```
+Điền thông tin Supabase:
+- `NEXT_PUBLIC_SUPABASE_URL` — URL project Supabase
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Anon key
+- `SUPABASE_SERVICE_ROLE_KEY` — Service role key
+
+### Bước 3: Tạo database
+Chạy SQL schema trong Supabase SQL Editor:
+```sql
+-- File: /lib/supabase/schema.sql
+```
+
+### Bước 4: Chạy
+```bash
+npm run dev
+```
+Mở http://localhost:3000 và đăng nhập.
+
+### Deploy
+```bash
+npm run build && npm start
+```
+
+## Kiến trúc
+
+```
+Người dùng → Next.js (Server Components + Server Actions)
+                ↓
+           Supabase Auth (xác thực)
+                ↓
+           PostgreSQL + RLS (dữ liệu)
+```
+
+- **Server Components** lấy dữ liệu, **Client Components** xử lý tương tác
+- **Server Actions** với `requireAdmin()` bảo vệ mọi thao tác ghi
+- **Zod** validate dữ liệu cả client và server
+- Khi ghi nhận đóng quỹ → tự động tạo giao dịch tương ứng
+
+## Database
+
+| Bảng | Mô tả |
+|------|-------|
+| `members` | Thành viên (tên, trạng thái, ngày tham gia) |
+| `contributions` | Đóng quỹ hàng tháng (thành viên, tháng, số tiền) |
+| `transactions` | Thu chi (ngày, loại, số tiền, danh mục, mô tả) |
+
+## Roadmap
+
+- [ ] Export Excel/CSV
+- [ ] Bulk import thành viên
+- [ ] Thông báo qua Zalo/SMS
+- [ ] Báo cáo đối soát hàng tháng
+- [ ] Ảnh chụp hóa đơn
+- [ ] Quy trình duyệt chi
+
+## License
+
+Internal use only — Ban Ban FC.
+
+---
+
+**Cập nhật**: Tháng 3, 2026 | **Tài liệu chi tiết**: xem thư mục `/docs`
