@@ -32,7 +32,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={loading}
             className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
-              danger ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:bg-blue-700'
+              danger ? 'bg-rose-600 hover:bg-rose-700' : 'bg-primary hover:bg-primary-600'
             } disabled:opacity-50`}
           >
             {loading ? 'Đang xử lý...' : 'Xác nhận'}

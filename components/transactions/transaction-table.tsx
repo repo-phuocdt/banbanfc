@@ -42,25 +42,25 @@ export function TransactionTable({ transactions, onEdit, isAuthenticated = false
 
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-white shadow-card">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+          <thead className="border-b bg-gray-50/80 text-left text-xs font-medium uppercase text-gray-500">
             <tr>
               <th className="px-3 py-3 w-10">STT</th>
               <th className="px-3 py-3">Ngày</th>
               <th className="px-3 py-3 text-right">Thu</th>
               <th className="px-3 py-3 text-right">Chi</th>
-              <th className="px-3 py-3">Nội dung</th>
-              <th className="px-3 py-3">Người</th>
-              <th className="px-3 py-3 text-right">Số dư lũy kế</th>
+              <th className="hidden px-3 py-3 sm:table-cell">Nội dung</th>
+              <th className="hidden px-3 py-3 md:table-cell">Người</th>
+              <th className="hidden px-3 py-3 text-right lg:table-cell">Số dư lũy kế</th>
               {isAuthenticated && <th className="px-3 py-3 w-20"></th>}
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-gray-100">
             {transactions.map((t, i) => (
               <tr
                 key={t.id}
-                className={t.type === 'income' ? 'bg-income-bg/50' : 'bg-expense-bg/50'}
+                className={`transition-colors hover:bg-gray-50 ${t.type === 'income' ? 'bg-income-bg/30' : 'bg-expense-bg/30'}`}
               >
                 <td className="px-3 py-2.5 text-gray-500">{i + 1}</td>
                 <td className="px-3 py-2.5 whitespace-nowrap"><DateDisplay date={t.date} /></td>
@@ -70,12 +70,12 @@ export function TransactionTable({ transactions, onEdit, isAuthenticated = false
                 <td className="px-3 py-2.5 text-right">
                   {t.type === 'expense' && <CurrencyDisplay amount={t.amount} type="expense" />}
                 </td>
-                <td className="px-3 py-2.5">
-                  <div>{t.description || t.category}</div>
-                  {t.note && <div className="text-xs text-gray-400">{t.note}</div>}
+                <td className="hidden px-3 py-2.5 sm:table-cell">
+                  <div className="max-w-[200px] truncate">{t.description || t.category}</div>
+                  {t.note && <div className="max-w-[200px] truncate text-xs text-gray-400">{t.note}</div>}
                 </td>
-                <td className="px-3 py-2.5 text-gray-600">{t.member_name || '—'}</td>
-                <td className="px-3 py-2.5 text-right font-medium">
+                <td className="hidden px-3 py-2.5 text-gray-600 md:table-cell">{t.member_name || '—'}</td>
+                <td className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">
                   <CurrencyDisplay
                     amount={t.running_balance}
                     type={t.running_balance >= 0 ? 'income' : 'expense'}
@@ -86,13 +86,13 @@ export function TransactionTable({ transactions, onEdit, isAuthenticated = false
                     <div className="flex gap-1">
                       <button
                         onClick={() => onEdit(t)}
-                        className="rounded p-1 text-gray-400 hover:bg-white hover:text-gray-600"
+                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(t)}
-                        className="rounded p-1 text-gray-400 hover:bg-white hover:text-red-600"
+                        className="rounded p-1 text-gray-400 hover:bg-rose-50 hover:text-rose-600"
                       >
                         <Trash2 size={14} />
                       </button>

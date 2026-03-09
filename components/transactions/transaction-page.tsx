@@ -1,12 +1,14 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import type { Member, TransactionWithMember } from '@/lib/types/database'
 import { TransactionTable } from './transaction-table'
 import { SummaryPanel } from './summary-panel'
 import { TransactionFormModal } from './transaction-form-modal'
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/utils/constants'
+import { StandaloneSelect } from '@/components/ui/select-field'
+import { StandaloneDatePicker } from '@/components/ui/date-picker-field'
 
 interface Props {
   transactions: TransactionWithMember[]
@@ -23,7 +25,9 @@ export function TransactionPage({ transactions, members, isAuthenticated = false
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<TransactionWithMember | null>(null)
 
-  // Running balance on ALL data (unfiltered), sorted by date ASC
+  const memberOptions = useMemo(() =>
+    members.map(m => ({ value: m.id, label: m.name })), [members])
+
   const transactionsWithBalance = useMemo(() => {
     let balance = 0
     return transactions.map(t => {
@@ -32,7 +36,6 @@ export function TransactionPage({ transactions, members, isAuthenticated = false
     })
   }, [transactions])
 
-  // Filter for display
   const filtered = useMemo(() => {
     return transactionsWithBalance.filter(t => {
       if (typeFilter !== 'all' && t.type !== typeFilter) return false
@@ -44,7 +47,6 @@ export function TransactionPage({ transactions, members, isAuthenticated = false
     })
   }, [transactionsWithBalance, dateFrom, dateTo, memberFilter, typeFilter, categoryFilter])
 
-  // Display in DESC order
   const displayed = useMemo(() => [...filtered].reverse(), [filtered])
 
   const categories = typeFilter === 'income'
@@ -53,44 +55,38 @@ export function TransactionPage({ transactions, members, isAuthenticated = false
     ? EXPENSE_CATEGORIES
     : Array.from(new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES]))
 
+  const categoryOptions = categories.map(c => ({ value: c, label: c }))
+
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         {/* Controls */}
         <div className="mb-4 flex flex-col gap-3">
           <div className="flex flex-wrap gap-2">
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={e => setDateFrom(e.target.value)}
-              className="rounded-lg border px-3 py-2 text-sm"
-              placeholder="Từ ngày"
-            />
-            <input
-              type="date"
-              value={dateTo}
-              onChange={e => setDateTo(e.target.value)}
-              className="rounded-lg border px-3 py-2 text-sm"
-              placeholder="Đến ngày"
-            />
-            <select
-              value={memberFilter}
-              onChange={e => setMemberFilter(e.target.value)}
-              className="rounded-lg border px-3 py-2 text-sm"
-            >
-              <option value="">Tất cả thành viên</option>
-              {members.map(m => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
+            <div className="w-36">
+              <StandaloneDatePicker value={dateFrom} onChange={setDateFrom} placeholder="Từ ngày" />
+            </div>
+            <div className="w-36">
+              <StandaloneDatePicker value={dateTo} onChange={setDateTo} placeholder="Đến ngày" />
+            </div>
+            <div className="w-48">
+              <StandaloneSelect
+                value={memberFilter}
+                onChange={setMemberFilter}
+                options={memberOptions}
+                placeholder="Tất cả thành viên"
+                isClearable
+                isSearchable
+              />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex rounded-lg border">
+            <div className="flex overflow-hidden rounded-lg border">
               {(['all', 'income', 'expense'] as const).map(t => (
                 <button
                   key={t}
                   onClick={() => { setTypeFilter(t); setCategoryFilter('') }}
-                  className={`px-3 py-1.5 text-sm font-medium ${
+                  className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                     typeFilter === t ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
@@ -98,20 +94,19 @@ export function TransactionPage({ transactions, members, isAuthenticated = false
                 </button>
               ))}
             </div>
-            <select
-              value={categoryFilter}
-              onChange={e => setCategoryFilter(e.target.value)}
-              className="rounded-lg border px-3 py-2 text-sm"
-            >
-              <option value="">Tất cả danh mục</option>
-              {categories.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+            <div className="w-44">
+              <StandaloneSelect
+                value={categoryFilter}
+                onChange={setCategoryFilter}
+                options={categoryOptions}
+                placeholder="Tất cả danh mục"
+                isClearable
+              />
+            </div>
             {isAuthenticated && (
               <button
                 onClick={() => { setEditing(null); setModalOpen(true) }}
-                className="ml-auto flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="ml-auto flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600"
               >
                 <Plus size={16} />
                 Thêm giao dịch

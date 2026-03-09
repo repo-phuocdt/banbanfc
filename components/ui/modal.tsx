@@ -30,7 +30,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="fixed inset-0 z-50 m-auto w-full max-w-lg rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/50"
+      className="fixed inset-0 z-50 m-auto w-[calc(100%-1.5rem)] max-w-lg rounded-xl bg-white p-0 shadow-xl backdrop:bg-black/50 sm:w-full"
     >
       <div className="flex items-center justify-between border-b px-6 py-4">
         <h2 className="text-lg font-semibold">{title}</h2>

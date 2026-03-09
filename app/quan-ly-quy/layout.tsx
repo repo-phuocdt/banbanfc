@@ -16,7 +16,7 @@ export default async function QuanLyQuyLayout({
       <div className="flex h-screen">
         <Sidebar user={user} />
         <main className="flex-1 overflow-auto">
-          <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
+          <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6">
             <div className="mb-6">
               <Breadcrumb />
             </div>

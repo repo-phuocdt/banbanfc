@@ -22,3 +22,38 @@
     background: white;
   }
 }
+
+/* react-datepicker overrides */
+.react-datepicker-wrapper {
+  @apply w-full;
+}
+.react-datepicker__input-container input {
+  @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary;
+}
+.react-datepicker {
+  @apply !border-gray-200 !rounded-xl !shadow-lg !font-sans;
+}
+.react-datepicker__header {
+  @apply !bg-gray-50 !border-b !border-gray-200 !rounded-t-xl;
+}
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  @apply !bg-primary !text-white !rounded-lg;
+}
+.react-datepicker__day:hover {
+  @apply !bg-primary-100 !rounded-lg;
+}
+.react-datepicker__day--today {
+  @apply !font-bold;
+}
+.react-datepicker__current-month {
+  @apply !text-sm !font-semibold !text-gray-700;
+}
+.react-datepicker__navigation-icon::before {
+  @apply !border-gray-400;
+}
+
+/* react-select overrides for portal menus */
+.react-select__menu-portal {
+  @apply !z-[9999];
+}

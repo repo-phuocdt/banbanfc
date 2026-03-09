@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin', 'vietnamese'] })
 
 export const metadata: Metadata = {
-  title: 'Quỹ Đội Bóng - Quản Lý Quỹ',
-  description: 'Quản lý quỹ đội bóng đá nghiệp dư',
+  title: 'Ban Ban FC - Quản Lý Quỹ',
+  description: 'Quản lý quỹ đội bóng Ban Ban FC',
 }
 
 export default function RootLayout({

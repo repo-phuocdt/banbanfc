@@ -23,7 +23,7 @@ export const STATUS_LABELS: Record<string, string> = {
 }
 
 export const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-green-100 text-green-800',
-  inactive: 'bg-red-100 text-red-800',
-  paused: 'bg-yellow-100 text-yellow-800',
+  active: 'bg-emerald-50 text-emerald-700',
+  inactive: 'bg-rose-50 text-rose-700',
+  paused: 'bg-amber-50 text-amber-700',
 }

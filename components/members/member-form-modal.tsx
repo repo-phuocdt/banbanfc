@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Modal } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
+import { SelectField } from '@/components/ui/select-field'
 import { createMember, updateMember } from '@/app/quan-ly-quy/thanh-vien/actions'
 import type { MemberWithTotal } from '@/lib/types/database'
 
@@ -19,12 +20,18 @@ interface FormValues {
   note: string
 }
 
+const STATUS_OPTIONS = [
+  { value: 'active', label: 'Đang hoạt động' },
+  { value: 'inactive', label: 'Đã nghỉ' },
+  { value: 'paused', label: 'Tạm nghỉ' },
+]
+
 export function MemberFormModal({ open, onClose, member }: Props) {
   const { showToast } = useToast()
   const [loading, setLoading] = useState(false)
   const isEdit = !!member
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, reset, control, formState: { errors } } = useForm<FormValues>({
     defaultValues: { name: '', status: 'active', note: '' },
   })
 
@@ -73,7 +80,7 @@ export function MemberFormModal({ open, onClose, member }: Props) {
           <button
             onClick={handleSubmit(onSubmit)}
             disabled={loading}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
           >
             {loading ? 'Đang lưu...' : 'Lưu'}
           </button>
@@ -85,27 +92,22 @@ export function MemberFormModal({ open, onClose, member }: Props) {
           <label className="mb-1 block text-sm font-medium">Họ tên *</label>
           <input
             {...register('name', { required: 'Tên không được để trống' })}
-            className="w-full rounded-lg border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
           {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Trạng thái</label>
-          <select
-            {...register('status')}
-            className="w-full rounded-lg border px-3 py-2 text-sm focus:border-primary focus:outline-none"
-          >
-            <option value="active">Đang hoạt động</option>
-            <option value="inactive">Đã nghỉ</option>
-            <option value="paused">Tạm nghỉ</option>
-          </select>
-        </div>
+        <SelectField
+          name="status"
+          control={control}
+          label="Trạng thái"
+          options={STATUS_OPTIONS}
+        />
         <div>
           <label className="mb-1 block text-sm font-medium">Ghi chú</label>
           <textarea
             {...register('note')}
             rows={2}
-            className="w-full rounded-lg border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
       </form>

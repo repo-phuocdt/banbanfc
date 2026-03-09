@@ -8,9 +8,23 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EmptyState } from '@/components/ui/empty-state'
 import { CurrencyDisplay } from '@/components/shared/currency-display'
 import { DateDisplay } from '@/components/shared/date-display'
+import { StandaloneSelect } from '@/components/ui/select-field'
 import { MemberFormModal } from './member-form-modal'
 import { deleteMember, updateMemberStatus } from '@/app/quan-ly-quy/thanh-vien/actions'
 import { useToast } from '@/components/ui/toast'
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'active', label: 'Đang hoạt động' },
+  { value: 'inactive', label: 'Đã nghỉ' },
+  { value: 'paused', label: 'Tạm nghỉ' },
+]
+
+const STATUS_CHANGE_OPTIONS = [
+  { value: 'active', label: 'Đang hoạt động' },
+  { value: 'inactive', label: 'Đã nghỉ' },
+  { value: 'paused', label: 'Tạm nghỉ' },
+]
 
 interface MemberTableProps {
   members: MemberWithTotal[]
@@ -27,11 +41,17 @@ export function MemberTable({ members, isAuthenticated = false }: MemberTablePro
   const [loading, setLoading] = useState(false)
 
   const filtered = useMemo(() => {
-    return members.filter(m => {
-      const matchSearch = m.name.toLowerCase().includes(search.toLowerCase())
-      const matchStatus = statusFilter === 'all' || m.status === statusFilter
-      return matchSearch && matchStatus
-    })
+    const order = { active: 0, paused: 1, inactive: 2 }
+    return members
+      .filter(m => {
+        const matchSearch = m.name.toLowerCase().includes(search.toLowerCase())
+        const matchStatus = statusFilter === 'all' || m.status === statusFilter
+        return matchSearch && matchStatus
+      })
+      .sort((a, b) =>
+        (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3)
+        || a.name.localeCompare(b.name, 'vi')
+      )
   }, [members, search, statusFilter])
 
   const handleDelete = async () => {
@@ -69,7 +89,7 @@ export function MemberTable({ members, isAuthenticated = false }: MemberTablePro
     <div>
       {/* Controls */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -77,24 +97,22 @@ export function MemberTable({ members, isAuthenticated = false }: MemberTablePro
               placeholder="Tìm theo tên..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="rounded-lg border py-2 pl-9 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="rounded-lg border px-3 py-2 text-sm focus:border-primary focus:outline-none"
-          >
-            <option value="all">Tất cả</option>
-            <option value="active">Đang hoạt động</option>
-            <option value="inactive">Đã nghỉ</option>
-            <option value="paused">Tạm nghỉ</option>
-          </select>
+          <div className="w-44">
+            <StandaloneSelect
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={STATUS_OPTIONS}
+              placeholder="Trạng thái"
+            />
+          </div>
         </div>
         {isAuthenticated && (
           <button
             onClick={() => { setEditing(null); setModalOpen(true) }}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600"
           >
             <Plus size={16} />
             Thêm thành viên
@@ -106,48 +124,46 @@ export function MemberTable({ members, isAuthenticated = false }: MemberTablePro
       {filtered.length === 0 ? (
         <EmptyState title="Không có thành viên" description="Chưa có thành viên nào phù hợp" />
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-white shadow-card">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+            <thead className="border-b bg-gray-50/80 text-left text-xs font-medium uppercase text-gray-500">
               <tr>
                 <th className="px-4 py-3 w-12">STT</th>
                 <th className="px-4 py-3">Họ tên</th>
                 <th className="px-4 py-3">Trạng thái</th>
-                <th className="px-4 py-3">Ngày tham gia</th>
+                <th className="hidden px-4 py-3 sm:table-cell">Ngày tham gia</th>
                 <th className="px-4 py-3 text-right">Tổng đã đóng</th>
-                <th className="px-4 py-3">Ghi chú</th>
-                {isAuthenticated && <th className="px-4 py-3 w-32"></th>}
+                <th className="hidden px-4 py-3 md:table-cell">Ghi chú</th>
+                {isAuthenticated && <th className="px-4 py-3 w-24"></th>}
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-gray-100">
               {filtered.map((member, i) => {
                 const isInactive = member.status === 'inactive'
                 return (
-                  <tr key={member.id} className={`${i % 2 === 1 ? 'bg-gray-50/50' : ''} ${isInactive ? 'opacity-60' : ''}`}>
+                  <tr key={member.id} className={`transition-colors hover:bg-gray-50 ${isInactive ? 'opacity-60' : ''}`}>
                     <td className="px-4 py-3 text-gray-500">{i + 1}</td>
                     <td className={`px-4 py-3 font-medium ${isInactive ? 'line-through' : ''}`}>
                       {member.name}
                     </td>
                     <td className="px-4 py-3">
                       {isAuthenticated ? (
-                        <select
-                          value={member.status}
-                          onChange={e => handleStatusChange(member.id, e.target.value)}
-                          className="rounded border bg-transparent px-1 py-0.5 text-xs"
-                        >
-                          <option value="active">Đang hoạt động</option>
-                          <option value="inactive">Đã nghỉ</option>
-                          <option value="paused">Tạm nghỉ</option>
-                        </select>
+                        <div className="w-44">
+                          <StandaloneSelect
+                            value={member.status}
+                            onChange={val => handleStatusChange(member.id, val)}
+                            options={STATUS_CHANGE_OPTIONS}
+                          />
+                        </div>
                       ) : (
                         <Badge status={member.status} />
                       )}
                     </td>
-                    <td className="px-4 py-3"><DateDisplay date={member.joined_at} /></td>
+                    <td className="hidden px-4 py-3 sm:table-cell"><DateDisplay date={member.joined_at} /></td>
                     <td className="px-4 py-3 text-right">
                       <CurrencyDisplay amount={member.total_contributed} type="income" />
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{member.note || '—'}</td>
+                    <td className="hidden px-4 py-3 text-gray-500 md:table-cell">{member.note || '—'}</td>
                     {isAuthenticated && (
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
@@ -160,7 +176,7 @@ export function MemberTable({ members, isAuthenticated = false }: MemberTablePro
                           </button>
                           <button
                             onClick={() => setDeleteTarget(member)}
-                            className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                            className="rounded p-1.5 text-gray-400 hover:bg-rose-50 hover:text-rose-600"
                             title="Xóa"
                           >
                             <Trash2 size={14} />
@@ -176,14 +192,12 @@ export function MemberTable({ members, isAuthenticated = false }: MemberTablePro
         </div>
       )}
 
-      {/* Form Modal */}
       <MemberFormModal
         open={modalOpen}
         onClose={() => { setModalOpen(false); setEditing(null) }}
         member={editing}
       />
 
-      {/* Delete Confirm */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

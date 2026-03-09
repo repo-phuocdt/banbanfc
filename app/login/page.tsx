@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -33,12 +34,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-lg">
-        <div className="mb-6 text-center">
-          <span className="text-4xl">⚽</span>
-          <h1 className="mt-2 text-xl font-bold">Đăng nhập Admin</h1>
-          <p className="text-sm text-gray-500">Quỹ Đội Bóng</p>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-dark via-dark-100 to-dark-50 px-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <Image
+            src="/banbanfc-logo.jpg"
+            alt="Ban Ban FC"
+            width={80}
+            height={80}
+            className="rounded-full shadow-lg"
+          />
+          <h1 className="mt-3 text-xl font-bold text-gray-900">Đăng nhập Admin</h1>
+          <p className="text-sm text-gray-500">Ban Ban FC - Quản Lý Quỹ</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -49,7 +56,7 @@ export default function LoginPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           <div>
@@ -59,7 +66,7 @@ export default function LoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full rounded-lg border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
@@ -70,7 +77,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
           >
             {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>

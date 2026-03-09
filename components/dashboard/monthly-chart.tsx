@@ -20,15 +20,16 @@ export function MonthlyChart({ data }: Props) {
   }))
 
   return (
-    <div className="rounded-xl border bg-white p-6">
+    <div className="rounded-xl bg-white p-4 shadow-card sm:p-6">
       <h2 className="mb-4 text-lg font-semibold">Thu chi theo tháng</h2>
-      <div className="h-[300px]">
+      <div className="h-[250px] sm:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData}>
             <XAxis dataKey="name" fontSize={12} />
             <YAxis
               fontSize={12}
               tickFormatter={v => `${(v / 1000).toFixed(0)}K`}
+              width={50}
             />
             <Tooltip
               formatter={(value, name) => [
@@ -37,8 +38,8 @@ export function MonthlyChart({ data }: Props) {
               ]}
             />
             <Legend formatter={v => (v === 'income' ? 'Thu' : 'Chi')} />
-            <Bar dataKey="income" fill="#006100" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expense" fill="#9C0006" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="income" fill="#059669" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="expense" fill="#E11D48" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

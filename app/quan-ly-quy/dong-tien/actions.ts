@@ -33,11 +33,12 @@ export async function createContribution(formData: unknown): Promise<ActionResul
   const parsed = contributionSchema.safeParse(formData)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
 
-  // Validate month not too far in future
+  // Validate month not too far in future (max 12 months ahead)
   const now = new Date()
-  const maxMonth = `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}`
+  const maxDate = new Date(now.getFullYear(), now.getMonth() + 12, 1)
+  const maxMonth = `${maxDate.getFullYear()}-${String(maxDate.getMonth() + 1).padStart(2, '0')}`
   if (parsed.data.month > maxMonth) {
-    return { success: false, error: 'Tháng không hợp lệ (quá xa trong tương lai)' }
+    return { success: false, error: 'Tháng không hợp lệ (tối đa 12 tháng trong tương lai)' }
   }
 
   const supabase = createClient()

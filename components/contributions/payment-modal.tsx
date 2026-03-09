@@ -98,7 +98,7 @@ export function PaymentModal({ open, onClose, member, month, contribution }: Pro
               {isEdit && (
                 <button
                   onClick={() => setConfirmDelete(true)}
-                  className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                  className="rounded-lg border border-rose-200 px-4 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50"
                 >
                   Xóa
                 </button>
@@ -111,7 +111,7 @@ export function PaymentModal({ open, onClose, member, month, contribution }: Pro
               <button
                 onClick={handleSubmit(onSubmit)}
                 disabled={loading}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
               >
                 {loading ? 'Đang lưu...' : 'Lưu'}
               </button>

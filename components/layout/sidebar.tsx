@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { BarChart3, Users, Wallet, Receipt, LogIn, LogOut, Menu, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -36,9 +37,15 @@ export function Sidebar({ user }: SidebarProps) {
 
   const navContent = (
     <>
-      <div className="flex items-center gap-2 border-b px-4 py-4">
-        <span className="text-2xl">⚽</span>
-        <span className="text-lg font-bold text-primary">Quỹ Đội Bóng</span>
+      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
+        <Image
+          src="/banbanfc-logo.jpg"
+          alt="Ban Ban FC"
+          width={40}
+          height={40}
+          className="rounded-full"
+        />
+        <span className="text-lg font-bold text-white">Ban Ban FC</span>
       </div>
       <nav className="flex-1 px-2 py-4">
         {NAV_ITEMS.map(item => {
@@ -51,21 +58,21 @@ export function Sidebar({ user }: SidebarProps) {
               onClick={() => setMobileOpen(false)}
               className={`mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 active
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-primary-500/20 text-white'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
               }`}
             >
-              <Icon size={20} />
+              <Icon size={20} className={active ? 'text-primary-300' : ''} />
               {item.label}
             </Link>
           )
         })}
       </nav>
-      <div className="border-t px-4 py-4">
+      <div className="border-t border-white/10 px-4 py-4">
         {user ? (
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-white/5 hover:text-white"
           >
             <LogOut size={18} />
             Đăng xuất
@@ -73,7 +80,7 @@ export function Sidebar({ user }: SidebarProps) {
         ) : (
           <Link
             href="/login"
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100"
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-white/5 hover:text-white"
           >
             <LogIn size={18} />
             Đăng nhập
@@ -88,7 +95,7 @@ export function Sidebar({ user }: SidebarProps) {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed left-4 top-4 z-40 rounded-lg bg-white p-2 shadow-md md:hidden"
+        className="fixed left-4 top-4 z-40 rounded-lg bg-dark p-2 text-white shadow-md md:hidden"
       >
         <Menu size={24} />
       </button>
@@ -97,10 +104,10 @@ export function Sidebar({ user }: SidebarProps) {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <div className="relative flex h-full w-64 flex-col bg-white shadow-xl">
+          <div className="relative flex h-full w-64 flex-col bg-dark shadow-xl">
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute right-2 top-2 rounded p-1 hover:bg-gray-100"
+              className="absolute right-2 top-2 rounded p-1 text-gray-400 hover:bg-white/10 hover:text-white"
             >
               <X size={20} />
             </button>
@@ -110,7 +117,7 @@ export function Sidebar({ user }: SidebarProps) {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden h-screen w-64 flex-col border-r bg-white md:flex">
+      <aside className="hidden h-screen w-64 flex-col bg-dark md:flex">
         {navContent}
       </aside>
     </>

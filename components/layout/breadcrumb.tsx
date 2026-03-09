@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { ChevronRight } from 'lucide-react'
 
 const LABELS: Record<string, string> = {
-  'quan-ly-quy': 'Quỹ Đội Bóng',
+  'quan-ly-quy': 'Ban Ban FC',
   'thanh-vien': 'Thành viên',
   'dong-tien': 'Đóng tiền',
   'thu-chi': 'Thu chi',

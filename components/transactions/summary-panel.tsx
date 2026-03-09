@@ -19,10 +19,10 @@ export function SummaryPanel({ transactions }: Props) {
   }, [transactions])
 
   const cards = [
-    { label: 'Tổng thu', value: stats.income, icon: TrendingUp, color: 'text-income-text', bg: 'bg-income-bg' },
-    { label: 'Tổng chi', value: stats.expense, icon: TrendingDown, color: 'text-expense-text', bg: 'bg-expense-bg' },
-    { label: 'Còn lại', value: stats.balance, icon: Wallet, color: 'text-primary', bg: 'bg-blue-50' },
-    { label: 'Số giao dịch', value: stats.count, icon: Hash, color: 'text-gray-600', bg: 'bg-gray-100', isCount: true },
+    { label: 'Tổng thu', value: stats.income, icon: TrendingUp, color: 'text-emerald-600', iconBg: 'bg-emerald-50' },
+    { label: 'Tổng chi', value: stats.expense, icon: TrendingDown, color: 'text-rose-600', iconBg: 'bg-rose-50' },
+    { label: 'Còn lại', value: stats.balance, icon: Wallet, color: 'text-primary', iconBg: 'bg-primary-50' },
+    { label: 'Số giao dịch', value: stats.count, icon: Hash, color: 'text-violet-600', iconBg: 'bg-violet-50', isCount: true },
   ]
 
   return (
@@ -31,9 +31,11 @@ export function SummaryPanel({ transactions }: Props) {
         {cards.map(card => {
           const Icon = card.icon
           return (
-            <div key={card.label} className={`rounded-lg ${card.bg} p-4`}>
+            <div key={card.label} className="rounded-xl bg-white p-4 shadow-card">
               <div className="flex items-center gap-2">
-                <Icon size={16} className={card.color} />
+                <div className={`rounded-lg ${card.iconBg} p-1.5`}>
+                  <Icon size={14} className={card.color} />
+                </div>
                 <span className="text-xs font-medium text-gray-500">{card.label}</span>
               </div>
               <p className={`mt-1 text-lg font-bold ${card.color}`}>
