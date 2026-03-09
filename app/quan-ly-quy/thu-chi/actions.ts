@@ -12,7 +12,7 @@ export async function getTransactions(): Promise<TransactionWithMember[]> {
   const { data, error } = await supabase
     .from('transactions')
     .select('*, members(name)')
-    .order('date', { ascending: true, nullsFirst: false })
+    .order('date', { ascending: true, nullsFirst: true })
 
   if (error) throw new Error(error.message)
 

@@ -2,21 +2,18 @@ export const DEFAULT_CONTRIBUTION = 200000
 
 export const INCOME_CATEGORIES = [
   'Quỹ hàng tháng',
-  'Tài trợ',
-  'Bán đồ cũ',
-  'Phạt',
-  'Khác (thu)',
+  'Góp thêm',
+  'Tiền dư hoàn lại',
+  'Khác',
 ] as const
 
 export const EXPENSE_CATEGORIES = [
-  'Thuê sân',
-  'Nước uống',
-  'Trang phục',
-  'Bóng',
-  'Y tế',
-  'Giải đấu',
-  'Liên hoan',
-  'Khác (chi)',
+  'Tiền sân',
+  'Tiền nước',
+  'Tiền sân + nước',
+  'Tiền áo/đồ',
+  'Tiền nhậu',
+  'Khác',
 ] as const
 
 export const STATUS_LABELS: Record<string, string> = {
