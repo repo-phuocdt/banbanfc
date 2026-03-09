@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/require-admin'
-import { memberSchema } from '@/lib/validations/schemas'
+import { memberSchema, memberStatusSchema } from '@/lib/validations/schemas'
 import type { ActionResult } from '@/lib/types/action-result'
 import type { MemberWithTotal } from '@/lib/types/database'
 
@@ -89,9 +89,14 @@ export async function deleteMember(id: string): Promise<ActionResult> {
 
 export async function updateMemberStatus(id: string, status: string): Promise<ActionResult> {
   await requireAdmin()
+
+  // Validate status against allowed enum values (prevent bypass to 'deleted')
+  const parsed = memberStatusSchema.safeParse(status)
+  if (!parsed.success) return { success: false, error: 'Trạng thái không hợp lệ' }
+
   const supabase = createClient()
   const { error } = await supabase.from('members').update({
-    status,
+    status: parsed.data,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 

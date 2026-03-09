@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
+export const memberStatusSchema = z.enum(['active', 'inactive', 'paused'])
+
 export const memberSchema = z.object({
   name: z.string().min(1, 'Tên không được để trống'),
-  status: z.enum(['active', 'inactive', 'paused']),
+  status: memberStatusSchema,
   note: z.string().optional().nullable(),
 })
 
