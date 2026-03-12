@@ -29,7 +29,8 @@ export async function getActiveMembers(): Promise<Member[]> {
 }
 
 export async function createContribution(formData: unknown): Promise<ActionResult> {
-  await requireAdmin()
+  const admin = await requireAdmin()
+  if (admin.error) return admin.error
   const parsed = contributionSchema.safeParse(formData)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
 
@@ -75,7 +76,8 @@ export async function createContribution(formData: unknown): Promise<ActionResul
 }
 
 export async function updateContribution(id: string, formData: unknown): Promise<ActionResult> {
-  await requireAdmin()
+  const admin = await requireAdmin()
+  if (admin.error) return admin.error
   const parsed = contributionSchema.safeParse(formData)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
 
@@ -99,7 +101,8 @@ export async function updateContribution(id: string, formData: unknown): Promise
 }
 
 export async function deleteContribution(id: string): Promise<ActionResult> {
-  await requireAdmin()
+  const admin = await requireAdmin()
+  if (admin.error) return admin.error
   const supabase = createClient()
 
   // Delete linked transaction first

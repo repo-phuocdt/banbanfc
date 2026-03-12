@@ -34,7 +34,8 @@ export async function getMembers(): Promise<MemberWithTotal[]> {
 }
 
 export async function createMember(formData: unknown): Promise<ActionResult> {
-  await requireAdmin()
+  const admin = await requireAdmin()
+  if (admin.error) return admin.error
   const parsed = memberSchema.safeParse(formData)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
 
@@ -55,7 +56,8 @@ export async function createMember(formData: unknown): Promise<ActionResult> {
 }
 
 export async function updateMember(id: string, formData: unknown): Promise<ActionResult> {
-  await requireAdmin()
+  const admin = await requireAdmin()
+  if (admin.error) return admin.error
   const parsed = memberSchema.safeParse(formData)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
 
@@ -73,7 +75,8 @@ export async function updateMember(id: string, formData: unknown): Promise<Actio
 }
 
 export async function deleteMember(id: string): Promise<ActionResult> {
-  await requireAdmin()
+  const admin = await requireAdmin()
+  if (admin.error) return admin.error
   const supabase = createClient()
 
   // Soft delete
@@ -88,7 +91,8 @@ export async function deleteMember(id: string): Promise<ActionResult> {
 }
 
 export async function updateMemberStatus(id: string, status: string): Promise<ActionResult> {
-  await requireAdmin()
+  const admin = await requireAdmin()
+  if (admin.error) return admin.error
 
   // Validate status against allowed enum values (prevent bypass to 'deleted')
   const parsed = memberStatusSchema.safeParse(status)

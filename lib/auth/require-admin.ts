@@ -1,13 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
+import type { ActionResult } from '@/lib/types/action-result'
+import type { User } from '@supabase/supabase-js'
 
-export async function requireAdmin() {
+type AdminResult =
+  | { user: User; error?: never }
+  | { user?: never; error: ActionResult }
+
+export async function requireAdmin(): Promise<AdminResult> {
   const supabase = createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) throw new Error('Unauthorized')
+  if (error || !user) {
+    return { error: { success: false, error: 'Bạn chưa đăng nhập' } }
+  }
 
   // Check admin role in app_metadata (defense-in-depth with RLS)
   const isAdmin = user.app_metadata?.is_admin === true
-  if (!isAdmin) throw new Error('Forbidden: Admin access required')
+  if (!isAdmin) {
+    return { error: { success: false, error: 'Bạn không có quyền thực hiện thao tác này' } }
+  }
 
-  return user
+  return { user }
 }
