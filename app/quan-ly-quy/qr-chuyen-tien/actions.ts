@@ -7,6 +7,9 @@ import { qrCodeSchema } from '@/lib/validations/schemas'
 import type { ActionResult } from '@/lib/types/action-result'
 import type { QrCode } from '@/lib/types/database'
 
+// Postgres error code for "relation does not exist" (table missing)
+const UNDEFINED_TABLE = '42P01'
+
 export async function getQrCodes(): Promise<QrCode[]> {
   const supabase = createClient()
   const { data, error } = await supabase
@@ -14,7 +17,12 @@ export async function getQrCodes(): Promise<QrCode[]> {
     .select('*')
     .order('display_order', { ascending: true })
     .order('created_at', { ascending: true })
-  if (error) throw new Error(error.message)
+  if (error) {
+    // Table doesn't exist yet — migration 004 hasn't been run.
+    // Render an empty list instead of 500-ing the page.
+    if (error.code === UNDEFINED_TABLE) return []
+    throw new Error(error.message)
+  }
   return data || []
 }
 
