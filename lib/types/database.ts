@@ -38,3 +38,18 @@ export interface MemberWithTotal extends Member {
 export interface TransactionWithMember extends Transaction {
   member_name?: string | null
 }
+
+export interface QrCode {
+  id: string
+  title: string
+  bank_name: string | null
+  account_name: string | null
+  account_number: string | null
+  description: string | null
+  image_data: string
+  image_mime: string
+  display_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}

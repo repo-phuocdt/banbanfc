@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { BarChart3, Users, Wallet, Receipt, LogIn, LogOut, Menu, X } from 'lucide-react'
+import { BarChart3, Users, Wallet, Receipt, QrCode, LogIn, LogOut, Menu, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: '/quan-ly-quy/thanh-vien', label: 'Thành viên', icon: Users },
   { href: '/quan-ly-quy/dong-tien', label: 'Đóng tiền', icon: Wallet },
   { href: '/quan-ly-quy/thu-chi', label: 'Thu chi', icon: Receipt },
+  { href: '/quan-ly-quy/qr-chuyen-tien', label: 'QR chuyển tiền', icon: QrCode },
 ]
 
 interface SidebarProps {
