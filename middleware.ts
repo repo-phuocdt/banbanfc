@@ -34,13 +34,18 @@ export async function middleware(request: NextRequest) {
 
   // Refresh session - no route blocking, all pages are public (view-only)
   // Mutations are protected by requireAdmin() in server actions + Supabase RLS
-  await supabase.auth.getUser()
+  // Swallow auth errors so a transient Supabase issue can't 500 the entire site
+  try {
+    await supabase.auth.getUser()
+  } catch {
+    // ignore - next request will retry
+  }
 
   return response
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|opengraph-image|twitter-image|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
