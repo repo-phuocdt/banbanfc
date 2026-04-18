@@ -1,8 +1,8 @@
 # System Architecture
 
 **Project**: Quản Lý Quỹ Đội Bóng
-**Version**: 1.0.0
-**Last Updated**: March 9, 2026
+**Version**: 1.1.0
+**Last Updated**: April 18, 2026
 
 ## Architecture Overview
 
@@ -18,56 +18,64 @@ Quản Lý Quỹ Đội Bóng is a full-stack web application using Next.js 14 w
 ## High-Level Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│              Browser / Client Application               │
-│  (React Components, Tailwind CSS, React Hook Form)      │
-└────────────────┬────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│              Browser / Client Application                │
+│  Desktop (≥768px) | Mobile (<768px) with Tailwind CSS    │
+└────────────────┬─────────────────────────────────────────┘
                  │ (HTTP/HTTPS)
-┌────────────────▼────────────────────────────────────────┐
-│            Next.js 14 App Router                        │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ Server Components (Data Fetching)               │   │
-│  │ ├─ Dashboard (page.tsx)                         │   │
-│  │ ├─ Members (page.tsx + actions.ts)              │   │
-│  │ ├─ Contributions (page.tsx + actions.ts)        │   │
-│  │ └─ Transactions (page.tsx + actions.ts)         │   │
-│  └─────────────────────────────────────────────────┘   │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ Server Actions (Business Logic)                 │   │
-│  │ ├─ requireAdmin() validation                    │   │
-│  │ ├─ Zod schema validation                        │   │
-│  │ ├─ Database mutations                           │   │
-│  │ └─ Cache revalidation                           │   │
-│  └─────────────────────────────────────────────────┘   │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ Middleware (Auth & Session)                     │   │
-│  │ ├─ Route protection                             │   │
-│  │ ├─ Session refresh                              │   │
-│  │ └─ Cookie management                            │   │
-│  └─────────────────────────────────────────────────┘   │
-└────────────────┬────────────────────────────────────────┘
+┌────────────────▼──────────────────────────────────────────┐
+│            Next.js 14 App Router                          │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │ Server Components (Data Fetching)                    │ │
+│  │ ├─ Dashboard (page.tsx)                              │ │
+│  │ ├─ Members (page.tsx + actions.ts)                   │ │
+│  │ ├─ Contributions (page.tsx + actions.ts)             │ │
+│  │ ├─ Transactions (page.tsx + actions.ts)              │ │
+│  │ └─ QR Codes (page.tsx + actions.ts)                  │ │
+│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │ Client Layout Switching (useIsMobile hook)           │ │
+│  │ ├─ LayoutShell: Desktop Sidebar | Mobile BottomNav   │ │
+│  │ ├─ DashboardSwitch, MemberSwitch, etc.               │ │
+│  │ └─ Returns null on SSR → skeleton fallback            │ │
+│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │ Server Actions (Business Logic)                      │ │
+│  │ ├─ requireAdmin() validation                         │ │
+│  │ ├─ Zod schema validation                             │ │
+│  │ ├─ Database mutations                                │ │
+│  │ └─ Cache revalidation                                │ │
+│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │ Middleware (Auth & Session)                          │ │
+│  │ ├─ Route protection                                  │ │
+│  │ ├─ Session refresh                                   │ │
+│  │ └─ Cookie management                                 │ │
+│  └──────────────────────────────────────────────────────┘ │
+└────────────────┬──────────────────────────────────────────┘
                  │ (HTTPS/SSL)
-┌────────────────▼────────────────────────────────────────┐
-│              Supabase Cloud                             │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ PostgreSQL Database                             │   │
-│  │ ├─ members (id, name, status, joined_at, ...)  │   │
-│  │ ├─ contributions (id, member_id, month, ...)    │   │
-│  │ └─ transactions (id, date, type, amount, ...)   │   │
-│  └─────────────────────────────────────────────────┘   │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ Row-Level Security (RLS)                        │   │
-│  │ ├─ Public read policies                         │   │
-│  │ ├─ Authenticated write policies                 │   │
-│  │ └─ Audit timestamps                             │   │
-│  └─────────────────────────────────────────────────┘   │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ Authentication Service                          │   │
-│  │ ├─ Email/password authentication                │   │
-│  │ ├─ Session management                           │   │
-│  │ └─ JWT token validation                         │   │
-│  └─────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────┘
+┌────────────────▼──────────────────────────────────────────┐
+│              Supabase Cloud                               │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │ PostgreSQL Database                                  │ │
+│  │ ├─ members (id, name, status, joined_at, ...)       │ │
+│  │ ├─ contributions (id, member_id, month, ...)         │ │
+│  │ ├─ transactions (id, date, type, amount, ...)        │ │
+│  │ └─ qr_codes (id, bank_name, account, image...)       │ │
+│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │ Row-Level Security (RLS)                             │ │
+│  │ ├─ Public read policies                              │ │
+│  │ ├─ Authenticated write policies                      │ │
+│  │ └─ Audit timestamps                                  │ │
+│  └──────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │ Authentication Service                               │ │
+│  │ ├─ Email/password authentication                     │ │
+│  │ ├─ Session management                                │ │
+│  │ └─ JWT token validation                              │ │
+│  └──────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -116,19 +124,32 @@ Quản Lý Quỹ Đội Bóng is a full-stack web application using Next.js 14 w
 ### 1. Authentication Flow
 
 ```
+User Navigates to App
+├─ (1) Pages are public (no auth gate)
+├─ (2) Middleware runs on every request
+│  └─ Refreshes session from cookies
+│  └─ Does NOT redirect to /login
+└─ (3) User sees all pages regardless of auth status
+
+User Clicks Admin Action (e.g., create member)
+├─ (1) Server action called
+├─ (2) requireAdmin() checks:
+│  ├─ User is authenticated
+│  └─ is_admin claim in JWT app_metadata = true
+├─ (3) If not admin → return error
+└─ (4) If admin → proceed with mutation
+
 User Login
 ├─ (1) POST /login (email, password)
 ├─ (2) Supabase Auth validates credentials
-├─ (3) JWT token generated
+├─ (3) JWT token generated with is_admin metadata
 ├─ (4) Session cookie set
-├─ (5) Middleware refreshes session on next request
-└─ (6) User can access protected routes
+└─ (5) User redirected to dashboard
 
 User Logout
 ├─ (1) Click logout button
 ├─ (2) Clear session cookie
-├─ (3) Redirect to /login
-└─ (4) Next request shows login page
+└─ (3) Redirect to /login (optional)
 ```
 
 ### 2. Page Load Flow (Dashboard Example)
@@ -136,8 +157,7 @@ User Logout
 ```
 User Navigates to /quan-ly-quy
 │
-├─ (1) Middleware checks auth session
-│  └─ If not authenticated → redirect to /login
+├─ (1) Middleware refreshes session (no redirect)
 │
 ├─ (2) Server Component (page.tsx)
 │  ├─ DashboardContent() runs on server
@@ -171,8 +191,8 @@ User Submits Member Form
 │  └─ Server Action called via POST
 │
 ├─ (3) Server executes createMember()
-│  ├─ Call requireAdmin() → check auth session
-│  │  └─ If not authenticated → throw error
+│  ├─ Call requireAdmin() → check authenticated AND is_admin
+│  │  └─ If not admin → return { success: false, error: "..." }
 │  ├─ Parse formData with memberSchema (Zod)
 │  │  └─ If invalid → return { success: false, error: "..." }
 │  ├─ INSERT INTO members (...) VALUES (...)
@@ -247,6 +267,76 @@ User Changes Status Filter
 │
 └─ (3) Table updates (no server request)
 ```
+
+---
+
+## Dual Layout Architecture (Desktop + Mobile)
+
+### Overview
+App supports two complete layouts:
+- **Desktop (≥768px)**: Original sidebar + main content (unchanged)
+- **Mobile (<768px)**: Bottom navigation + mobile-optimized components
+
+### Design Pattern
+
+**Breakpoint**: 768px (Tailwind `md:` prefix)
+
+**Detection**: `useIsMobile()` hook runs client-side only
+```typescript
+// Returns: boolean (client) | null (SSR) 
+// Detects: window.innerWidth < 768
+// Prevents: hydration mismatch via null on server
+```
+
+**Layout Switching** (in `LayoutShell` component):
+```
+useIsMobile === null → Skeleton (SSR)
+useIsMobile === true → MobileLayout (header + content + bottom nav)
+useIsMobile === false → Sidebar (desktop unchanged)
+```
+
+**Page-Level Switching** (DashboardSwitch, MemberSwitch, etc.):
+- Server Component fetches data
+- Switch component detects mobile
+- Routes to MobileDashboard or Desktop Dashboard
+- Both receive same data props
+
+### Mobile Layout Structure
+```
+┌─────────────────────┐
+│  Mobile Header      │ ← Sticky top, h-14
+│  (Title + Menu)     │
+├─────────────────────┤
+│                     │
+│  Content Area       │ ← Scrollable, pb-16
+│  (page-specific)    │   for bottom nav
+│                     │
+├─────────────────────┤
+│  Bottom Nav         │ ← Fixed bottom, h-16
+│  (5 tabs)           │
+└─────────────────────┘
+```
+
+### Components
+
+**Mobile UI Primitives**:
+- `MobileSheet`: Headless UI bottom sheet (replaces Modal)
+- `MobileCard`: Card item for lists (replaces table rows)
+- `BottomNav`: Tab-based navigation
+- `MobileHeader`: Compact top bar
+
+**Feature-Specific Mobile Views**:
+- `DashboardMobile`: Card layout for metrics
+- `MemberList`: Card list with search/filter
+- `TransactionList`: Card list with grouped headers
+- `ContributionView`: Grouped member contributions
+- `QRCodeList`: Optimized grid for QR codes
+
+### Benefits
+1. **Zero desktop impact**: Original components untouched
+2. **Native feel**: Bottom nav, sheet modals, card lists
+3. **SSR-safe**: No hydration mismatches
+4. **Responsive data**: Server fetches once, client renders appropriately
 
 ---
 
@@ -380,7 +470,8 @@ CREATE TABLE transactions (
   member_id UUID REFERENCES members(id),
   contribution_id UUID REFERENCES contributions(id),
   note TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_transactions_date ON transactions(date);
@@ -394,46 +485,91 @@ CREATE INDEX idx_transactions_type ON transactions(type);
 
 **Running Balance**: Calculated in application (not stored)
 
+### QR Codes Table
+```sql
+CREATE TABLE qr_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  bank_name TEXT NOT NULL,
+  account_name TEXT NOT NULL,
+  account_number TEXT NOT NULL,
+  description TEXT,
+  image_data BYTEA NOT NULL,
+  image_mime TEXT NOT NULL,
+  display_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_qr_codes_active ON qr_codes(is_active);
+CREATE INDEX idx_qr_codes_order ON qr_codes(display_order);
+```
+
+**Features**:
+- Stores QR image as base64 bytea with MIME type
+- Supports reordering via display_order
+- Soft deactivation via is_active flag
+- Audit timestamps for all operations
+
 ---
 
 ## RLS Policies
 
-### Members Table
+### Admin-Only RLS Policies (Updated)
+
+All tables now use custom `is_admin()` function for write access:
+
 ```sql
--- Public read (optional, for UI dropdowns)
-CREATE POLICY "Enable read access for all authenticated users"
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+BEGIN
+  RETURN (auth.jwt()->'app_metadata'->>'is_admin')::boolean;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Members Table
+CREATE POLICY "Enable read access for all"
 ON public.members FOR SELECT
-USING (auth.role() = 'authenticated');
+USING (true);
 
--- Authenticated write
-CREATE POLICY "Enable write for authenticated users"
-ON public.members FOR INSERT, UPDATE
-WITH CHECK (auth.role() = 'authenticated');
-```
+CREATE POLICY "Enable write for admin only"
+ON public.members FOR INSERT, UPDATE, DELETE
+WITH CHECK (is_admin());
 
-### Contributions Table
-```sql
--- Authenticated read & write
-CREATE POLICY "Enable read access for authenticated users"
+-- Contributions Table
+CREATE POLICY "Enable read access for all"
 ON public.contributions FOR SELECT
-USING (auth.role() = 'authenticated');
+USING (true);
 
-CREATE POLICY "Enable write for authenticated users"
-ON public.contributions FOR INSERT, UPDATE
-WITH CHECK (auth.role() = 'authenticated');
-```
+CREATE POLICY "Enable write for admin only"
+ON public.contributions FOR INSERT, UPDATE, DELETE
+WITH CHECK (is_admin());
 
-### Transactions Table
-```sql
--- Authenticated read & write
-CREATE POLICY "Enable read access for authenticated users"
+-- Transactions Table
+CREATE POLICY "Enable read access for all"
 ON public.transactions FOR SELECT
-USING (auth.role() = 'authenticated');
+USING (true);
 
-CREATE POLICY "Enable write for authenticated users"
-ON public.transactions FOR INSERT, UPDATE
-WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Enable write for admin only"
+ON public.transactions FOR INSERT, UPDATE, DELETE
+WITH CHECK (is_admin());
+
+-- QR Codes Table
+CREATE POLICY "Enable read access for all"
+ON public.qr_codes FOR SELECT
+USING (true);
+
+CREATE POLICY "Enable write for admin only"
+ON public.qr_codes FOR INSERT, UPDATE, DELETE
+WITH CHECK (is_admin());
 ```
+
+**Key Changes**:
+- SELECT policies are PUBLIC (anyone can read)
+- INSERT/UPDATE/DELETE policies require is_admin() = true
+- Replaces old authenticated-only approach
+- is_admin claim comes from Supabase Auth metadata
 
 ---
 
@@ -688,5 +824,5 @@ Git Commit
 ---
 
 **Document Owner**: Development Team
-**Last Updated**: March 9, 2026
-**Next Review**: June 9, 2026
+**Last Updated**: April 18, 2026
+**Next Review**: July 18, 2026

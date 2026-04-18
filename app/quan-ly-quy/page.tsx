@@ -1,14 +1,7 @@
 import { Suspense } from 'react'
-import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
-import { SummaryCards } from '@/components/dashboard/summary-cards'
-import { RecentTransactions } from '@/components/dashboard/recent-transactions'
+import { DashboardSwitch } from '@/components/dashboard/dashboard-switch'
 import { Skeleton } from '@/components/ui/skeleton'
-
-const MonthlyChart = dynamic(
-  () => import('@/components/dashboard/monthly-chart').then(m => ({ default: m.MonthlyChart })),
-  { ssr: false, loading: () => <Skeleton className="h-[380px] w-full rounded-xl" /> }
-)
 
 async function DashboardContent() {
   const supabase = createClient()
@@ -48,15 +41,13 @@ async function DashboardContent() {
   }))
 
   return (
-    <div className="space-y-6">
-      <SummaryCards
-        totalIncome={totalIncome}
-        totalExpense={totalExpense}
-        activeMembers={activeMembers}
-      />
-      <MonthlyChart data={monthlyData} />
-      <RecentTransactions transactions={recentTransactions} />
-    </div>
+    <DashboardSwitch
+      totalIncome={totalIncome}
+      totalExpense={totalExpense}
+      activeMembers={activeMembers}
+      monthlyData={monthlyData}
+      recentTransactions={recentTransactions}
+    />
   )
 }
 
@@ -77,7 +68,7 @@ function DashboardSkeleton() {
 export default function DashboardPage() {
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">Tổng quan</h1>
+      <h1 className="mb-6 text-2xl font-bold md:block hidden">Tổng quan</h1>
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardContent />
       </Suspense>

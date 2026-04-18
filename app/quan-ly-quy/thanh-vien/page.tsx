@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { getMembers } from './actions'
-import { MemberTable } from '@/components/members/member-table'
+import { MemberSwitch } from '@/components/members/member-switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { createClient } from '@/lib/supabase/server'
 
@@ -21,14 +21,14 @@ async function MemberTableLoader() {
     getMembers(),
     supabase.auth.getUser(),
   ])
-  return <MemberTable members={members} isAuthenticated={!!user} />
+  return <MemberSwitch members={members} isAuthenticated={!!user} />
 }
 
 export default function ThanhVienPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold">Thành viên</h1>
-      <p className="mt-1 text-sm text-gray-500">Quản lý danh sách thành viên đội bóng</p>
+      <h1 className="hidden text-2xl font-bold md:block">Thành viên</h1>
+      <p className="mt-1 hidden text-sm text-gray-500 md:block">Quản lý danh sách thành viên đội bóng</p>
       <div className="mt-6">
         <Suspense fallback={<MemberTableSkeleton />}>
           <MemberTableLoader />

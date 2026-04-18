@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { getQrCodes } from './actions'
-import { QrCodeManager } from '@/components/qr-codes/qr-code-manager'
+import { QrCodeSwitch } from '@/components/qr-codes/qr-code-switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { createClient } from '@/lib/supabase/server'
 
@@ -26,14 +26,14 @@ async function QrLoader() {
     supabase.auth.getUser(),
   ])
   const isAdmin = user?.app_metadata?.is_admin === true
-  return <QrCodeManager qrCodes={qrCodes} isAdmin={isAdmin} />
+  return <QrCodeSwitch qrCodes={qrCodes} isAdmin={isAdmin} />
 }
 
 export default function QrChuyenTienPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold">QR chuyển tiền</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <h1 className="hidden text-2xl font-bold md:block">QR chuyển tiền</h1>
+      <p className="mt-1 hidden text-sm text-gray-500 md:block">
         Quét mã QR bên dưới để chuyển quỹ cho đội bóng. Chỉ quản trị viên mới có thể thêm, sửa hoặc xóa mã QR.
       </p>
       <div className="mt-6">

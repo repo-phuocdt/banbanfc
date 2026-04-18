@@ -28,8 +28,8 @@ async function TransactionLoader() {
 export default function ThuChiPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold">Thu chi</h1>
-      <p className="mt-1 text-sm text-gray-500">Sổ giao dịch thu chi đội bóng</p>
+      <h1 className="hidden text-2xl font-bold md:block">Thu chi</h1>
+      <p className="mt-1 hidden text-sm text-gray-500 md:block">Sổ giao dịch thu chi đội bóng</p>
       <div className="mt-6">
         <Suspense fallback={<TransactionSkeleton />}>
           <TransactionLoader />

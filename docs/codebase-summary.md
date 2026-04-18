@@ -2,18 +2,20 @@
 
 **Project**: Quản Lý Quỹ Đội Bóng (Football Team Fund Management)
 **Tech Stack**: Next.js 14, React 18, TypeScript, Tailwind CSS, Supabase
-**Last Updated**: March 9, 2026
+**Last Updated**: April 18, 2026
+**Version**: 1.1.0
 
 ## Quick Overview
 
 Quản Lý Quỹ Đội Bóng is a full-stack web application for managing Vietnamese amateur football team finances. The codebase follows Next.js 14 App Router conventions with clear separation between server components (data fetching), client components (interactivity), and server actions (business logic).
 
 **Codebase Stats**:
-- ~21 React components across 5 feature areas
+- ~40+ React components (25 desktop + 15 mobile + switches)
 - ~8 utility/type files in lib/
-- ~8 server action files (one per route)
-- ~350 total lines of app code (excluding node_modules)
+- ~9 server action files (one per route + QR)
+- ~5,200+ total lines of app code (excluding node_modules)
 - Fully typed with TypeScript strict mode
+- Dual-layout responsive: desktop 100% unchanged, mobile dedicated components
 
 ---
 
@@ -81,8 +83,21 @@ Quản Lý Quỹ Đội Bóng is a full-stack web application for managing Vietn
 - **`actions.ts`**: Server actions for transactions
   - `getTransactions()`: Fetch all with member joins
   - `createTransaction()`: Validate, insert, revalidate
+  - `updateTransaction()`: Edit transaction details
   - `deleteTransaction()`: Remove transaction (with confirmation)
-  - ~70 LOC
+  - ~90 LOC
+
+#### QR Codes Route (`/app/quan-ly-quy/qr-chuyen-tien/`)
+- **`page.tsx`**: Fetches all QR codes
+  - Renders QRCodeManager component
+  - ~25 LOC
+
+- **`actions.ts`**: Server actions for QR codes
+  - `getQRCodes()`: Fetch all ordered by display_order
+  - `createQRCode()`: Upload QR image with bank details
+  - `updateQRCode()`: Edit QR details and status
+  - `deleteQRCode()`: Remove QR code
+  - ~100 LOC
 
 ---
 
@@ -128,6 +143,51 @@ Quản Lý Quỹ Đội Bóng is a full-stack web application for managing Vietn
 - Displays date in Vietnamese format (DD/MM/YYYY)
 - Props: date, format (optional)
 - Uses date-fns with Vietnamese locale
+
+#### Mobile Components (`/components/mobile/`)
+**useIsMobile Hook** (`hooks/use-is-mobile.ts`) — 12 LOC
+- Returns `boolean | null` (null on SSR to avoid hydration mismatch)
+- Detects viewport < 768px (Tailwind `md:` breakpoint)
+- Debounced resize listener
+
+**LayoutShell** (`components/layout/layout-shell.tsx`) — 40 LOC
+- Client component wrapper for dual-layout routing
+- Shows Sidebar on desktop (≥768px), MobileLayout on mobile (<768px)
+- Skeleton fallback during SSR
+
+**MobileLayout** (`components/mobile/mobile-layout.tsx`) — 25 LOC
+- Mobile shell: MobileHeader (sticky top) + content area + BottomNav (fixed bottom)
+- Content area: `pb-16` spacing for bottom nav clearance
+
+**MobileHeader** (`components/mobile/mobile-header.tsx`) — 30 LOC
+- Sticky top header: page title + optional action button slot
+- Right side: user menu + logout link
+- Height: h-14 with shadow
+
+**BottomNav** (`components/mobile/bottom-nav.tsx`) — 45 LOC
+- Fixed bottom navigation: 5 tabs (Dashboard, Members, Contributions, Transactions, QR)
+- Active tab highlighted with primary color
+- Icons + Vietnamese labels, safe-area padding for iOS
+
+**MobileSheet** (`components/mobile/mobile-sheet.tsx`) — 50 LOC
+- Headless UI Dialog bottom sheet (replaces Modal on mobile)
+- Smooth slide-up animation, drag-handle visual cue
+- Max height 90vh, rounded-t-2xl
+
+**MobileCard** (`components/mobile/mobile-card.tsx`) — 30 LOC
+- Reusable card component for list items
+- Shows title, subtitle, metadata, optional action slot
+- Tap feedback active state
+
+**Page Switch Components** (`components/{feature}/{feature}-switch.tsx`)
+- DashboardSwitch, MemberSwitch, ContributionSwitch, QRCodeSwitch (40-50 LOC each)
+- Client components that bridge Server Components to mobile/desktop rendering
+- Conditional render based on `useIsMobile()` with fallback skeletons
+
+**Mobile Feature Views** (dashboard-mobile, member-list, transaction-list, contribution-view, qr-code-list)
+- Card-based layouts for dashboard metrics, member roster, transactions, contributions
+- Search/filter state managed client-side
+- Same data props as desktop, optimized responsive layout
 
 #### Layout Components (`/components/layout/`)
 **Sidebar** (`sidebar.tsx`) — 60 LOC
@@ -226,6 +286,22 @@ Quản Lý Quỹ Đội Bóng is a full-stack web application for managing Vietn
 - Color-coded values
 - Props: transactions (to calculate totals)
 
+#### QR Codes Components (`/components/qr-codes/`)
+**QRCodeManager** (`qr-code-manager.tsx`) — 189 LOC
+- Display list of QR codes with bank details
+- Actions: copy account number, download image, edit, delete, toggle active
+- Responsive grid layout
+- Empty state if no QR codes
+- Props: qrCodes array, onRefresh callback
+
+**QRCodeFormModal** (`qr-code-form-modal.tsx`) — 271 LOC
+- Modal form for create/edit QR code
+- Fields: title, bank_name, account_name, account_number, description, image upload
+- Image handling: convert to base64, store MIME type
+- Uses React Hook Form + Zod validation
+- Calls createQRCode or updateQRCode server action
+- Props: isOpen, onClose, initialData (edit mode)
+
 ---
 
 ### `/lib` — Utilities & Configuration
@@ -304,9 +380,11 @@ Quản Lý Quỹ Đội Bóng is a full-stack web application for managing Vietn
 **next.config.js** — 2 LOC
 - Minimal config (no custom webpack)
 
-**tailwind.config.js** — Standard Tailwind v3 config
-- Default theme (no custom colors overrides)
-- Plugins: none
+**tailwind.config.js** — Enhanced Tailwind v3 config
+- Custom colors: primary (blue), accent (green), dark (navy), income (green), expense (red)
+- Custom shadows: shadow-card, shadow-card-hover
+- Full custom theme extending Tailwind defaults
+- No third-party plugins
 
 **tsconfig.json** — TypeScript strict mode enabled
 - `strict: true`
@@ -462,10 +540,12 @@ Table re-renders immediately
 - **zod** (3.25.76): Schema validation
 
 ### UI & Styling
-- **tailwindcss** (3.4.19): Utility CSS
+- **tailwindcss** (3.4.19): Utility CSS with custom theme
 - **lucide-react** (0.577.0): Icon library
 - **autoprefixer** (10.4.27): CSS vendor prefixes
 - **postcss** (8.5.8): CSS processing
+- **react-select** (5.10.2): Accessible select component
+- **react-datepicker** (9.1.0): Date picker component
 
 ### Data & Date
 - **recharts** (3.8.0): Charting library
@@ -496,11 +576,11 @@ __tests__/
 ## Known Limitations
 
 1. **No pagination**: Small dataset (32 members)
-2. **No transaction edit**: Immutable by design
-3. **No bulk operations**: Add one at a time
-4. **No export**: Manual export via Supabase dashboard
-5. **No offline mode**: Requires internet
-6. **No email notifications**: No integration with email service
+2. **No bulk operations**: Add one at a time
+3. **No export**: Manual export via Supabase dashboard
+4. **No offline mode**: Requires internet
+5. **No email notifications**: No integration with email service
+6. **Single team**: No multi-team support yet
 7. **Single database**: No multi-database support
 
 ---
@@ -508,12 +588,13 @@ __tests__/
 ## Future Enhancements (Roadmap)
 
 1. **CSV Import/Export**: Bulk member & transaction import
-2. **SMS Notifications**: Zalo/SMS reminders for unpaid
+2. **SMS Notifications**: Zalo/SMS reminders for unpaid contributions
 3. **Photo Receipts**: Upload & store expense photos
-4. **Advanced Analytics**: Spending patterns, ROI per event
-5. **Mobile App**: React Native version
-6. **Multi-team Support**: Manage multiple teams
-7. **API Integration**: Banking auto-import, Zalo bot
+4. **Transaction UI Edit**: User interface for editing transactions
+5. **Advanced Analytics**: Spending patterns, ROI per event
+6. **Mobile App**: React Native version
+7. **Multi-team Support**: Manage multiple teams
+8. **API Integration**: Banking auto-import, Zalo bot
 
 ---
 
@@ -582,5 +663,5 @@ npm run test:coverage   # Generate coverage report
 ---
 
 **Document Owner**: Development Team
-**Last Updated**: March 9, 2026
+**Last Updated**: April 18, 2026
 **Next Update**: When new features added or structure changes

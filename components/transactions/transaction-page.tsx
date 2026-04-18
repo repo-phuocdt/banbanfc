@@ -3,12 +3,15 @@
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { Member, TransactionWithMember } from '@/lib/types/database'
+import { useIsMobile } from '@/hooks/use-is-mobile'
 import { TransactionTable } from './transaction-table'
+import { TransactionList } from '@/components/mobile/transaction-list'
 import { SummaryPanel } from './summary-panel'
 import { TransactionFormModal } from './transaction-form-modal'
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/utils/constants'
 import { StandaloneSelect } from '@/components/ui/select-field'
 import { StandaloneDatePicker } from '@/components/ui/date-picker-field'
+import { formatCurrency } from '@/lib/utils/format'
 
 interface Props {
   transactions: TransactionWithMember[]
@@ -17,6 +20,7 @@ interface Props {
 }
 
 export function TransactionPage({ transactions, members, isAuthenticated = false }: Props) {
+  const isMobile = useIsMobile()
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [memberFilter, setMemberFilter] = useState('')
@@ -57,6 +61,76 @@ export function TransactionPage({ transactions, members, isAuthenticated = false
 
   const categoryOptions = categories.map(c => ({ value: c, label: c }))
 
+  // Mobile layout
+  if (isMobile) {
+    const totalIncome = filtered.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+    const totalExpense = filtered.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+
+    return (
+      <div>
+        {/* Summary + filters — sticky within scrollable main */}
+        <div className="sticky -top-4 z-10 -mx-4 bg-gray-50 px-4 pt-4 pb-3">
+          <div className="mb-2 grid grid-cols-3 gap-2">
+            <div className="rounded-lg bg-emerald-50 p-2 text-center">
+              <p className="text-[10px] text-gray-500">Thu</p>
+              <p className="text-xs font-bold text-emerald-600">{formatCurrency(totalIncome)}</p>
+            </div>
+            <div className="rounded-lg bg-rose-50 p-2 text-center">
+              <p className="text-[10px] text-gray-500">Chi</p>
+              <p className="text-xs font-bold text-rose-600">{formatCurrency(totalExpense)}</p>
+            </div>
+            <div className="rounded-lg bg-primary-50 p-2 text-center">
+              <p className="text-[10px] text-gray-500">Còn lại</p>
+              <p className="text-xs font-bold text-primary">{formatCurrency(totalIncome - totalExpense)}</p>
+            </div>
+          </div>
+
+          {/* Filter pills */}
+          <div className="flex gap-1.5 overflow-x-auto">
+          {(['all', 'income', 'expense'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => { setTypeFilter(t); setCategoryFilter('') }}
+              className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                typeFilter === t
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-gray-600 ring-1 ring-gray-200'
+              }`}
+            >
+              {t === 'all' ? 'Tất cả' : t === 'income' ? 'Thu' : 'Chi'}
+            </button>
+          ))}
+          </div>
+        </div>
+
+        <TransactionList
+          transactions={displayed}
+          onEdit={t => { setEditing(t); setModalOpen(true) }}
+          isAuthenticated={isAuthenticated}
+        />
+
+        {/* FAB */}
+        {isAuthenticated && (
+          <button
+            onClick={() => { setEditing(null); setModalOpen(true) }}
+            className="fixed bottom-20 right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform active:scale-95"
+            aria-label="Thêm giao dịch"
+          >
+            <Plus size={24} />
+          </button>
+        )}
+
+        <TransactionFormModal
+          open={modalOpen}
+          onClose={() => { setModalOpen(false); setEditing(null) }}
+          transaction={editing}
+          members={members}
+        />
+      </div>
+    )
+  }
+
+  // Desktop layout
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
       <div className="min-w-0 flex-1">
