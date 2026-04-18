@@ -32,3 +32,24 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# claude code
+.claude/
+
+# opencode
+.opencode/
+
+# repomix
+.repomixignore
+
+# agents
+AGENTS.md
+
+# plans templates
+plans/templates/
+
+# release
+release-manifest.json
+
+# yarn
+yarn.lock
