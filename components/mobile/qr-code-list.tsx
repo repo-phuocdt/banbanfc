@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Download, Copy, Check } from 'lucide-react'
+import { Plus, Pencil, Trash2, Download, Copy, Check, Share2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EmptyState } from '@/components/ui/empty-state'
 import { QrCodeFormModal } from '@/components/qr-codes/qr-code-form-modal'
@@ -52,6 +52,29 @@ export function QrCodeList({ qrCodes, isAdmin }: QrCodeListProps) {
       setTimeout(() => setCopiedId(null), 1500)
     } catch {
       showToast('Không thể sao chép', 'error')
+    }
+  }
+
+  const handleShare = async (qr: QrCode) => {
+    try {
+      // Convert base64 data URI to File for Web Share API
+      const res = await fetch(qr.image_data)
+      const blob = await res.blob()
+      const file = new File([blob], `qr-${qr.title.replace(/\s+/g, '-')}.png`, { type: 'image/png' })
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `QR chuyển quỹ - ${qr.title}`,
+        })
+      } else {
+        showToast('Thiết bị không hỗ trợ chia sẻ ảnh', 'error')
+      }
+    } catch (err) {
+      // User cancelled share — ignore AbortError
+      if (err instanceof Error && err.name !== 'AbortError') {
+        showToast('Không thể chia sẻ', 'error')
+      }
     }
   }
 
@@ -124,14 +147,23 @@ export function QrCodeList({ qrCodes, isAdmin }: QrCodeListProps) {
 
             {/* Actions */}
             <div className="flex items-center justify-between border-t px-4 py-2">
-              <a
-                href={qr.image_data}
-                download={`qr-${qr.title.replace(/\s+/g, '-')}.png`}
-                className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100"
-              >
-                <Download size={14} />
-                Tải ảnh
-              </a>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => handleShare(qr)}
+                  className="flex items-center gap-1 rounded-lg bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 active:bg-primary-100"
+                >
+                  <Share2 size={14} />
+                  Chia sẻ QR
+                </button>
+                <a
+                  href={qr.image_data}
+                  download={`qr-${qr.title.replace(/\s+/g, '-')}.png`}
+                  className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100"
+                >
+                  <Download size={14} />
+                  Tải ảnh
+                </a>
+              </div>
               {isAdmin && (
                 <div className="flex gap-1">
                   <button

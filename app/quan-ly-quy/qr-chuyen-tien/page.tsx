@@ -5,8 +5,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata = {
-  title: 'QR chuyển tiền - Ban Ban FC',
-  description: 'Quét mã QR để chuyển quỹ cho Ban Ban FC',
+  title: 'Chuyển quỹ - Ban Ban FC',
+  description: 'Quét mã QR hoặc chuyển khoản để đóng quỹ đội bóng Ban Ban FC.',
+  openGraph: {
+    title: 'Chuyển quỹ Ban Ban FC',
+    description: 'Quét mã QR hoặc chuyển khoản để đóng quỹ đội bóng Ban Ban FC.',
+  },
 }
 
 function QrSkeleton() {
