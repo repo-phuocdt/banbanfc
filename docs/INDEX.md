@@ -1,8 +1,8 @@
 # Documentation Index
 
 **Project**: Quản Lý Quỹ Đội Bóng (Football Team Fund Management)
-**Last Updated**: March 9, 2026
-**Status**: Complete & Production-Ready
+**Last Updated**: April 18, 2026
+**Status**: Production-Ready (Phase 3 QR Complete)
 
 ---
 
@@ -65,25 +65,25 @@ This documentation suite provides comprehensive guidance for developers, stakeho
 
 ### [project-overview-pdr.md](./project-overview-pdr.md)
 **Purpose**: Product requirements & acceptance criteria
-**Length**: ~480 lines
+**Length**: ~550 lines
 **For**: Stakeholders, project managers, QA engineers
 **Contains**:
 - Executive summary & problem statement
-- 7 functional requirements with acceptance criteria (F1-F7)
+- 8 functional requirements with acceptance criteria (F1-F8)
 - 6 non-functional requirements
 - Technical specifications
-- Database schema definition
+- Database schema definition (4 tables)
 - API patterns & authentication model
 - Success metrics
-- Known limitations
-- Future roadmap (3 phases)
+- Known limitations (updated)
+- Future roadmap (4 phases)
 - Glossary of Vietnamese terms
 
 **Key Sections**:
-- **Functional Requirements**: Auth, Members, Contributions, Transactions, Dashboard, Validation, UI
-- **Acceptance Criteria**: 50+ specific ACs for testing
+- **Functional Requirements**: Auth, Members, Contributions, Transactions, Dashboard, Validation, UI, QR Codes
+- **Acceptance Criteria**: 60+ specific ACs for testing
 - **Technology Stack**: Next.js, React, Supabase, Tailwind, etc.
-- **Roadmap**: Short/medium/long-term enhancements
+- **Roadmap**: Phase 1-3 Complete, Phase 4 Future
 
 ---
 
@@ -147,28 +147,30 @@ This documentation suite provides comprehensive guidance for developers, stakeho
 
 ### [codebase-summary.md](./codebase-summary.md)
 **Purpose**: Quick reference for code organization & file locations
-**Length**: ~460 lines
+**Length**: ~500 lines
 **For**: Developers exploring codebase, DevOps, new team members
 **Contains**:
-- Quick overview (statistics: files, components, lines)
+- Quick overview (statistics: files, components, lines, ~3,545 LOC total)
 - Complete directory structure with file inventory
-- All 30+ files documented with LOC counts
-- 21 React components categorized by feature
+- All 35+ files documented with LOC counts
+- 25+ React components categorized by feature
 - 8 utility/type files explained
-- 8 server action files documented
+- 8 server action files documented + QR actions
+- QR code components & features
 - Data flow patterns (read, write, filter)
 - Key design patterns used
 - Development workflow for new features
 - Common files & their purposes (reference table)
-- Dependencies overview (organized by category)
-- Known limitations
+- Dependencies overview (updated with new libs)
+- Known limitations (transaction immutability removed)
 - Future enhancements
 - Performance metrics (load times)
 - Code quality & security checklists
 
 **Key Sections**:
 - **Directory Structure**: Every file documented
-- **Components**: All 21 components with purpose & LOC
+- **Components**: 25+ components with purpose & LOC
+- **QR Code Feature**: Manager & form modal components
 - **Design Patterns**: Server components, validation, error handling
 - **Development Workflow**: Checklist for adding features
 
@@ -225,10 +227,10 @@ README.md (START HERE)
 ## Key Documentation Highlights
 
 ### Requirements & Scope
-- **7 Functional Requirements** with 50+ acceptance criteria
+- **8 Functional Requirements** with 60+ acceptance criteria
 - **6 Non-Functional Requirements** (security, performance, scalability, etc.)
-- **3 Product Phases** (core → polish → optional)
-- **Roadmap** for future enhancements
+- **4 Product Phases** (core → polish → QR → future)
+- **Roadmap** with Phase 3 QR codes complete
 
 ### Architecture
 - **Server Components** for data fetching
@@ -367,17 +369,19 @@ README.md (START HERE)
 
 | Document | Version | Last Updated | Next Review |
 |----------|---------|--------------|-------------|
-| README.md | 1.0.0 | 2026-03-09 | 2026-06-09 |
-| project-overview-pdr.md | 1.0.0 | 2026-03-09 | 2026-06-09 |
-| code-standards.md | 1.0.0 | 2026-03-09 | 2026-06-09 |
-| system-architecture.md | 1.0.0 | 2026-03-09 | 2026-06-09 |
-| codebase-summary.md | 1.0.0 | 2026-03-09 | 2026-06-09 |
-| quick-reference.md | 1.0.0 | 2026-03-09 | 2026-06-09 |
+| README.md | 1.0.0 | 2026-03-09 | 2026-07-09 |
+| project-overview-pdr.md | 1.1.0 | 2026-04-18 | 2026-07-18 |
+| code-standards.md | 1.1.0 | 2026-04-18 | 2026-07-18 |
+| system-architecture.md | 1.1.0 | 2026-04-18 | 2026-07-18 |
+| codebase-summary.md | 1.1.0 | 2026-04-18 | 2026-07-18 |
+| quick-reference.md | 1.1.0 | 2026-04-18 | 2026-07-18 |
+| project-roadmap.md | 1.0.0 | 2026-04-18 | 2026-07-18 |
+| design-guidelines.md | 1.0.0 | 2026-04-18 | 2026-07-18 |
 
 ---
 
-**Documentation Complete**: March 9, 2026
+**Documentation Complete**: April 18, 2026
 **Maintained By**: Development Team
-**Status**: Production-Ready
+**Status**: Production-Ready (v1.1.0)
 
-Start with [README.md](../README.md) and enjoy! 🚀
+Start with [README.md](../README.md) and enjoy!

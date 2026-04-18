@@ -1,9 +1,9 @@
 # Project Overview & Product Development Requirements
 
 **Project**: Quản Lý Quỹ Đội Bóng (Football Team Fund Management)
-**Version**: 1.0.0
-**Status**: Completed
-**Last Updated**: March 9, 2026
+**Version**: 1.1.0
+**Status**: Production-Ready
+**Last Updated**: April 18, 2026
 
 ## Executive Summary
 
@@ -35,12 +35,14 @@ Quản Lý Quỹ Đội Bóng is a web-based internal tool for Vietnamese amateu
 ## Functional Requirements
 
 ### F1: Authentication & Authorization
-- **Description**: Admin-only access via Supabase email/password
-- **Scope**: Login page, session management, middleware protection
-- **AC1**: User must be authenticated to access `/quan-ly-quy/*`
-- **AC2**: Unauthenticated users redirected to `/login`
-- **AC3**: Server actions require `requireAdmin()` validation
+- **Description**: Admin-only access via Supabase email/password, public page viewing
+- **Scope**: Login page, session management, middleware, admin mutations
+- **AC1**: Pages are publicly viewable without authentication
+- **AC2**: Middleware refreshes session, does NOT redirect to /login
+- **AC3**: Server actions require `requireAdmin()` (checks authenticated AND is_admin claim)
 - **AC4**: User can logout (session cleared, redirect to login)
+- **AC5**: Admin verification uses custom `is_admin()` PL/pgSQL function on JWT metadata
+- **AC6**: All mutations protected by admin-only RLS policies
 
 ### F2: Member Management
 - **Description**: CRUD operations for team members
@@ -127,16 +129,28 @@ Quản Lý Quỹ Đội Bóng is a web-based internal tool for Vietnamese amateu
 - **AC2**: All labels/buttons in Vietnamese
 - **AC3**: Currency format: VNĐ with dot separator (e.g., 200.000)
 - **AC4**: Date format: DD/MM/YYYY (Vietnamese locale)
-- **AC5**: Color scheme:
-  - Income/positive: green (#006100 text, #E2EFDA bg)
-  - Expense/negative: red (#9C0006 text, #FCE4EC bg)
-  - Inactive/muted: gray (#999999)
-  - Primary: blue (#4472C4)
-- **AC6**: Sidebar with icon nav: Tổng quan, Thành viên, Đóng tiền, Thu chi
+- **AC5**: Custom Tailwind theme with semantic colors:
+  - Primary: blue, Income: green, Expense: red, Dark: navy
+  - Custom shadows: shadow-card, shadow-card-hover
+- **AC6**: Sidebar with icon nav: Tổng quan, Thành viên, Đóng tiền, Thu chi, QR chuyển tiền
 - **AC7**: Active nav item highlighted
 - **AC8**: Breadcrumb navigation
 - **AC9**: Skeleton loaders during data fetch
 - **AC10**: Toast notifications for CRUD success/error
+
+### F8: QR Code Management
+- **Description**: Upload and manage bank transfer QR codes
+- **Scope**: QR code page, upload modal, QR code gallery
+- **AC1**: Display list of bank QR codes with details (bank name, account number, image)
+- **AC2**: Upload QR image with bank details (name, account name, account number)
+- **AC3**: Copy account number to clipboard
+- **AC4**: Download QR image
+- **AC5**: Toggle QR code active/inactive status
+- **AC6**: Edit QR code details (bank info, description)
+- **AC7**: Delete QR code with confirmation
+- **AC8**: Reorder QR codes by display_order
+- **AC9**: Store QR image as base64 in database with MIME type
+- **AC10**: Display active QR codes prominently, inactive with muted style
 
 ---
 
@@ -172,9 +186,9 @@ Quản Lý Quỹ Đội Bóng is a web-based internal tool for Vietnamese amateu
 
 ### NFR5: Data Integrity
 - **Requirement**: Accurate financial records
-- **AC1**: Transactions immutable (no edit after create)
+- **AC1**: Transactions editable with audit trail (created_at, updated_at)
 - **AC2**: Running balance calculation deterministic
-- **AC3**: Audit trail (created_at, updated_at timestamps)
+- **AC3**: Comprehensive audit trail on all tables
 - **AC4**: Soft deletes preserve historical data
 
 ### NFR6: Maintainability
@@ -229,7 +243,20 @@ transactions
 ├── member_id (uuid, nullable, fk)
 ├── contribution_id (uuid, nullable, fk)
 ├── note (text, nullable)
-├── created_at (timestamp)
+├── created_at, updated_at (timestamp)
+
+qr_codes
+├── id (uuid, pk)
+├── title (text)
+├── bank_name (text)
+├── account_name (text)
+├── account_number (text)
+├── description (text, nullable)
+├── image_data (bytea, base64)
+├── image_mime (text)
+├── display_order (integer)
+├── is_active (boolean)
+├── created_at, updated_at (timestamp)
 ```
 
 ### API Patterns
@@ -265,11 +292,20 @@ SUPABASE_SERVICE_ROLE_KEY=...
 - [x] Soft deletes
 - [x] Auto-create transactions
 
-### Phase 3: Optional (Future)
+### Phase 3: QR Code Management (Completed)
+- [x] Upload QR code images
+- [x] Bank details management
+- [x] Copy account number
+- [x] Download QR images
+- [x] Active/inactive toggle
+- [x] Admin-only RLS policies
+- [x] Custom Tailwind theme
+
+### Phase 4: Future Enhancements
 - [ ] CSV export/import
 - [ ] Monthly reconciliation reports
 - [ ] SMS/Zalo notifications
-- [ ] Expense approval workflow
+- [ ] Transaction editing UI
 - [ ] Photo receipt uploads
 
 ---
@@ -288,14 +324,16 @@ banbanfc/
 │       ├── layout.tsx     # Sidebar layout
 │       ├── thanh-vien/    # Members
 │       ├── dong-tien/     # Contributions
-│       └── thu-chi/       # Transactions
+│       ├── thu-chi/       # Transactions
+│       └── qr-chuyen-tien/# QR codes (NEW)
 ├── components/
 │   ├── ui/                # Primitives (badge, modal)
 │   ├── layout/            # Sidebar, breadcrumb
 │   ├── dashboard/         # Dashboard widgets
 │   ├── members/           # Member components
 │   ├── contributions/     # Contribution matrix
-│   └── transactions/      # Ledger components
+│   ├── transactions/      # Ledger components
+│   └── qr-codes/          # QR code components (NEW)
 ├── lib/
 │   ├── types/             # TypeScript interfaces
 │   ├── auth/              # Auth utilities
@@ -343,12 +381,12 @@ banbanfc/
 
 ## Known Limitations
 
-1. **No transaction edit**: Once created, transactions are immutable (design choice for audit)
-2. **No pagination**: Small data set (32 members, ~100 transactions/month)
-3. **No bulk operations**: Members/transactions added one at a time
-4. **No export**: Manual CSV export from Supabase dashboard required
-5. **No offline mode**: Requires internet connection
-6. **No notifications**: No email/SMS reminders for unpaid contributions
+1. **No pagination**: Small data set (32 members, ~100 transactions/month)
+2. **No bulk operations**: Members/transactions added one at a time
+3. **No export**: Manual CSV export from Supabase dashboard required
+4. **No offline mode**: Requires internet connection
+5. **No notifications**: No email/SMS reminders for unpaid contributions
+6. **Single team**: No multi-team support yet
 
 ---
 
@@ -356,9 +394,9 @@ banbanfc/
 
 ### Short-term (1-3 months)
 - CSV import for bulk member/transaction upload
-- Transaction edit capability with audit log
 - Monthly reconciliation reports
 - Filters persistence (URL-based)
+- UI for transaction editing
 
 ### Medium-term (3-6 months)
 - SMS/Zalo notifications for contributions
@@ -421,6 +459,7 @@ banbanfc/
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0.0 | 2026-03-09 | Initial release: members, contributions, ledger, dashboard |
+| 1.1.0 | 2026-04-18 | QR code management, admin-only RLS, custom Tailwind theme, transaction editing |
 
 ---
 
@@ -438,5 +477,5 @@ banbanfc/
 ---
 
 **Document Owner**: Development Team
-**Last Reviewed**: March 9, 2026
-**Next Review**: June 9, 2026
+**Last Reviewed**: April 18, 2026
+**Next Review**: July 18, 2026

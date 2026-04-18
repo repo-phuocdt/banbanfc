@@ -1,7 +1,8 @@
 # Quick Reference Guide
 
 **Project**: Quản Lý Quỹ Đội Bóng
-**Last Updated**: March 9, 2026
+**Last Updated**: April 18, 2026
+**Version**: 1.1.0
 
 > Fast lookup guide for common tasks. For detailed info, see full documentation.
 
@@ -48,7 +49,8 @@ components/        → React components
 ├─ dashboard/      → Charts, cards
 ├─ members/        → Member list & form
 ├─ contributions/  → Matrix view
-└─ transactions/   → Ledger & form
+├─ transactions/   → Ledger & form
+└─ qr-codes/       → QR upload & gallery (NEW)
 
 lib/               → Utilities
 ├─ types/          → TypeScript interfaces
@@ -488,6 +490,6 @@ quick-reference.md (this file)
 
 ---
 
-**Last Updated**: March 9, 2026
+**Last Updated**: April 18, 2026
 **Maintained By**: Development Team
-**Version**: 1.0.0
+**Version**: 1.1.0

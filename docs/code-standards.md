@@ -1,8 +1,8 @@
 # Code Standards & Codebase Structure
 
 **Project**: Quản Lý Quỹ Đội Bóng
-**Version**: 1.0.0
-**Last Updated**: March 9, 2026
+**Version**: 1.1.0
+**Last Updated**: April 18, 2026
 
 ## Overview
 
@@ -28,9 +28,12 @@ banbanfc/
 │       ├── dong-tien/              # Contribution matrix
 │       │   ├── page.tsx            # Contribution matrix page
 │       │   └── actions.ts          # Contribution server actions
-│       └── thu-chi/                # Transaction ledger
-│           ├── page.tsx            # Ledger page
-│           └── actions.ts          # Transaction server actions
+│       ├── thu-chi/                # Transaction ledger
+│       │   ├── page.tsx            # Ledger page
+│       │   └── actions.ts          # Transaction server actions
+│       └── qr-chuyen-tien/         # QR codes (NEW)
+│           ├── page.tsx            # QR codes page
+│           └── actions.ts          # QR server actions
 ├── components/                       # Reusable React components
 │   ├── ui/                         # Base UI primitives
 │   │   ├── modal.tsx              # Modal dialog
@@ -43,23 +46,42 @@ banbanfc/
 │   │   ├── currency-display.tsx   # VNĐ formatting wrapper
 │   │   └── date-display.tsx       # Date formatting wrapper
 │   ├── layout/                     # Layout components
-│   │   ├── sidebar.tsx            # Main sidebar navigation
-│   │   └── breadcrumb.tsx         # Breadcrumb navigation
-│   ├── dashboard/                  # Dashboard widgets
+│   │   ├── sidebar.tsx            # Main sidebar navigation (desktop)
+│   │   ├── breadcrumb.tsx         # Breadcrumb navigation
+│   │   └── layout-shell.tsx       # Layout switcher (desktop/mobile)
+│   ├── mobile/                     # Mobile-only components (NEW)
+│   │   ├── mobile-layout.tsx      # Mobile shell (header+nav+content)
+│   │   ├── mobile-header.tsx      # Compact top header
+│   │   ├── bottom-nav.tsx         # Fixed bottom navigation (5 tabs)
+│   │   ├── mobile-sheet.tsx       # Bottom sheet modal
+│   │   ├── mobile-card.tsx        # Reusable card for lists
+│   │   ├── dashboard-mobile.tsx   # Dashboard mobile view
+│   │   ├── member-list.tsx        # Members card list
+│   │   ├── transaction-list.tsx   # Transactions card list
+│   │   ├── contribution-view.tsx  # Contributions grouped view
+│   │   └── qr-code-list.tsx       # QR codes optimized grid
+│   ├── dashboard/                  # Dashboard widgets (desktop)
 │   │   ├── summary-cards.tsx      # Top summary metrics
 │   │   ├── monthly-chart.tsx      # Income vs expense chart
-│   │   └── recent-transactions.tsx# Recent transactions list
-│   ├── members/                    # Member-related components
+│   │   ├── recent-transactions.tsx# Recent transactions list
+│   │   └── dashboard-switch.tsx   # Desktop/mobile switcher
+│   ├── members/                    # Member components (desktop)
 │   │   ├── member-table.tsx       # Members data table
-│   │   └── member-form-modal.tsx  # Member form modal
-│   ├── contributions/              # Contribution matrix components
+│   │   ├── member-form-modal.tsx  # Member form modal
+│   │   └── member-switch.tsx      # Desktop/mobile switcher
+│   ├── contributions/              # Contribution components (desktop)
 │   │   ├── contribution-matrix.tsx# Matrix view
-│   │   └── payment-modal.tsx      # Payment recording modal
-│   └── transactions/               # Transaction ledger components
-│       ├── transaction-page.tsx   # Ledger container
-│       ├── transaction-table.tsx  # Ledger data table
-│       ├── transaction-form-modal.tsx# Transaction form
-│       └── summary-panel.tsx      # Right-side summary
+│   │   ├── payment-modal.tsx      # Payment recording modal
+│   │   └── contribution-switch.tsx# Desktop/mobile switcher
+│   ├── transactions/               # Transaction components (desktop)
+│   │   ├── transaction-page.tsx   # Ledger container
+│   │   ├── transaction-table.tsx  # Ledger data table
+│   │   ├── transaction-form-modal.tsx# Transaction form
+│   │   └── summary-panel.tsx      # Right-side summary
+│   └── qr-codes/                   # QR code components
+│       ├── qr-code-manager.tsx    # QR list & actions (desktop)
+│       ├── qr-code-form-modal.tsx # QR upload form
+│       └── qr-code-switch.tsx     # Desktop/mobile switcher
 ├── lib/                             # Utilities, types, config
 │   ├── types/
 │   │   ├── database.ts            # Database model interfaces
@@ -268,6 +290,86 @@ const members = await supabase.from('members')...
 
 ---
 
+## Mobile & Desktop Layout Pattern
+
+### useIsMobile Hook
+**Purpose**: Detect mobile viewport without hydration mismatch
+
+```typescript
+// hooks/use-is-mobile.ts
+'use client'
+import { useState, useEffect } from 'react'
+
+const MOBILE_BREAKPOINT = 768
+
+export function useIsMobile(): boolean | null {
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
+  
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+  
+  return isMobile  // null on SSR, boolean on client
+}
+```
+
+**Usage**: Only in Client Components. Returns `null` during SSR to prevent hydration mismatches.
+
+### Switch Component Pattern
+**Purpose**: Bridge Server Components (data fetch) to Client conditional rendering
+
+```typescript
+// components/dashboard/dashboard-switch.tsx
+'use client'
+import { useIsMobile } from '@/hooks/use-is-mobile'
+import { Skeleton } from '@/components/ui/skeleton'
+import DashboardMobile from '@/components/mobile/dashboard-mobile'
+import Dashboard from './dashboard'
+
+interface DashboardSwitchProps {
+  // same props as desktop Dashboard
+  totalIncome: number
+  totalExpense: number
+  activeMembers: number
+  monthlyData: MonthlyData[]
+  recentTransactions: TransactionWithMember[]
+}
+
+export default function DashboardSwitch(props: DashboardSwitchProps) {
+  const isMobile = useIsMobile()
+  
+  if (isMobile === null) {
+    return <Skeleton className="h-96" />  // SSR fallback
+  }
+  
+  return isMobile ? (
+    <DashboardMobile {...props} />
+  ) : (
+    <Dashboard {...props} />
+  )
+}
+```
+
+**Usage in Server Component**:
+```typescript
+// app/quan-ly-quy/page.tsx (Server Component)
+export default async function DashboardPage() {
+  const data = await fetchDashboardData()
+  return <DashboardSwitch {...data} />  {/* Switch on client */}
+}
+```
+
+**Benefits**:
+- Data fetching stays server-side (efficient)
+- Layout switching happens client-side (fast)
+- No duplicate data fetch
+- Mobile components never SSR
+
+---
+
 ## React & Next.js Patterns
 
 ### Server vs Client Components
@@ -349,6 +451,51 @@ export function MemberForm() {
 
 ---
 
+## Mobile Component Patterns
+
+**Mobile Layout Components**:
+- `MobileSheet`: Headless UI-based bottom sheet (replaces Modal on mobile)
+- `MobileCard`: Card component for list items (replaces table rows)
+- `BottomNav`: Fixed-bottom tab navigation
+- `MobileHeader`: Compact sticky top bar
+
+**Feature Mobile Views** (suffix: `-mobile`, `-list`, `-view`):
+- Receive same data props as desktop components
+- Return `null` on SSR (avoid hydration mismatch)
+- Use card-based layouts, stacked vertically
+- Touch targets: ≥44px height
+
+**Example**:
+```typescript
+// components/mobile/member-list.tsx
+'use client'
+export function MemberList({ members }: { members: MemberWithTotal[] }) {
+  const [expanded, setExpanded] = useState<string | null>(null)
+  
+  return (
+    <div className="space-y-3 px-4">
+      {members.map(m => (
+        <MobileCard
+          key={m.id}
+          title={m.name}
+          subtitle={m.status}
+          metadata={`${formatCurrency(m.total_contributed)}`}
+          onClick={() => setExpanded(expanded === m.id ? null : m.id)}
+        >
+          {expanded === m.id && (
+            <div className="border-t pt-3 mt-3">
+              <p className="text-sm text-gray-600">{m.note}</p>
+            </div>
+          )}
+        </MobileCard>
+      ))}
+    </div>
+  )
+}
+```
+
+---
+
 ## Styling Standards
 
 ### Tailwind CSS
@@ -419,20 +566,27 @@ const { data } = await supabase.rpc('raw_sql', ...)  // Raw SQL (security risk)
 ```
 
 ### RLS Policies
-- **Read**: Public or authenticated
-- **Write**: Authenticated users only
+- **Read**: Public (anyone can view data)
+- **Write**: Admin-only (custom is_admin() function checks JWT metadata)
 - **Delete**: Not used (soft deletes with status='deleted')
 - **Audit**: created_at, updated_at on all tables
 
 ```sql
--- Example RLS policy
-CREATE POLICY "Enable read access for all authenticated users"
-ON public.members FOR SELECT
-USING (auth.role() = 'authenticated');
+-- Admin-only RLS policy (updated)
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+BEGIN
+  RETURN (auth.jwt()->'app_metadata'->>'is_admin')::boolean;
+END;
+$$ LANGUAGE plpgsql STABLE;
 
-CREATE POLICY "Enable write for authenticated users"
-ON public.members FOR INSERT, UPDATE
-WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Enable read access for all"
+ON public.members FOR SELECT
+USING (true);
+
+CREATE POLICY "Enable write for admin users only"
+ON public.members FOR INSERT, UPDATE, DELETE
+WITH CHECK (is_admin());
 ```
 
 ---
@@ -441,8 +595,9 @@ WITH CHECK (auth.role() = 'authenticated');
 
 ### Access Control
 - **Login**: Email/password via Supabase Auth
-- **Middleware**: Checks session, redirects to /login if unauthenticated
-- **Server Actions**: Call `requireAdmin()` to ensure authenticated user
+- **Pages**: Publicly viewable without authentication
+- **Middleware**: Refreshes session only, does NOT redirect
+- **Server Actions**: Call `requireAdmin()` to ensure authenticated AND is_admin
 - **Soft Delete**: Users can't access deleted members in dropdowns
 
 ```typescript
@@ -450,13 +605,22 @@ WITH CHECK (auth.role() = 'authenticated');
 export async function requireAdmin() {
   const supabase = createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) throw new Error('Unauthorized')
-  return user
+  if (error || !user) {
+    return { error: 'Not authenticated' }
+  }
+  const isAdmin = user.app_metadata?.is_admin === true
+  if (!isAdmin) {
+    return { error: 'Admin access required' }
+  }
+  return { user }
 }
 
-// Use in server action
+// Use in server action (returns ActionResult, doesn't throw)
 export async function createMember(formData) {
-  await requireAdmin()  // Throws if not authenticated
+  const auth = await requireAdmin()
+  if (auth.error) {
+    return { success: false, error: auth.error }
+  }
   // ... mutation code
 }
 ```
@@ -716,5 +880,5 @@ if (result.success) {
 ---
 
 **Document Owner**: Development Team
-**Last Updated**: March 9, 2026
-**Next Review**: June 9, 2026
+**Last Updated**: April 18, 2026
+**Next Review**: July 18, 2026

@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { getContributions, getActiveMembers } from './actions'
-import { ContributionMatrix } from '@/components/contributions/contribution-matrix'
+import { ContributionSwitch } from '@/components/contributions/contribution-switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { createClient } from '@/lib/supabase/server'
 
@@ -22,14 +22,14 @@ async function MatrixLoader() {
     getActiveMembers(),
     supabase.auth.getUser(),
   ])
-  return <ContributionMatrix contributions={contributions} members={members} isAuthenticated={!!user} />
+  return <ContributionSwitch contributions={contributions} members={members} isAuthenticated={!!user} />
 }
 
 export default function DongTienPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold">Đóng tiền</h1>
-      <p className="mt-1 text-sm text-gray-500">Bảng đóng quỹ hàng tháng</p>
+      <h1 className="hidden text-2xl font-bold md:block">Đóng tiền</h1>
+      <p className="mt-1 hidden text-sm text-gray-500 md:block">Bảng đóng quỹ hàng tháng</p>
       <div className="mt-6">
         <Suspense fallback={<MatrixSkeleton />}>
           <MatrixLoader />
