@@ -7,6 +7,8 @@ import { RecentTransactions } from './recent-transactions'
 import { DashboardMobile } from '@/components/mobile/dashboard-mobile'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { TransactionWithMember } from '@/lib/types/database'
+import type { BankMonthStats } from '@/lib/bank/monthly-stats'
+import { BankMonthlyStats } from '@/components/dashboard/bank-monthly-stats'
 
 const MonthlyChart = dynamic(
   () => import('./monthly-chart').then(m => ({ default: m.MonthlyChart })),
@@ -19,6 +21,7 @@ interface DashboardSwitchProps {
   activeMembers: number
   monthlyData: { month: string; income: number; expense: number }[]
   recentTransactions: TransactionWithMember[]
+  bankStats: BankMonthStats[] | null
 }
 
 export function DashboardSwitch(props: DashboardSwitchProps) {
@@ -37,6 +40,7 @@ export function DashboardSwitch(props: DashboardSwitchProps) {
         activeMembers={props.activeMembers}
       />
       <MonthlyChart data={props.monthlyData} />
+      {props.bankStats && <BankMonthlyStats stats={props.bankStats} />}
       <RecentTransactions transactions={props.recentTransactions} />
     </div>
   )

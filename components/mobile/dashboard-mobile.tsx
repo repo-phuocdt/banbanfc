@@ -8,6 +8,8 @@ import { CurrencyDisplay } from '@/components/shared/currency-display'
 import { DateDisplay } from '@/components/shared/date-display'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { TransactionWithMember } from '@/lib/types/database'
+import type { BankMonthStats } from '@/lib/bank/monthly-stats'
+import { BankMonthlyStats } from '@/components/dashboard/bank-monthly-stats'
 
 const MonthlyChart = dynamic(
   () => import('@/components/dashboard/monthly-chart').then(m => ({ default: m.MonthlyChart })),
@@ -20,6 +22,7 @@ interface DashboardMobileProps {
   activeMembers: number
   monthlyData: { month: string; income: number; expense: number }[]
   recentTransactions: TransactionWithMember[]
+  bankStats: BankMonthStats[] | null
 }
 
 export function DashboardMobile({
@@ -28,6 +31,7 @@ export function DashboardMobile({
   activeMembers,
   monthlyData,
   recentTransactions,
+  bankStats,
 }: DashboardMobileProps) {
   const balance = totalIncome - totalExpense
 
@@ -58,6 +62,8 @@ export function DashboardMobile({
 
       {/* Monthly Chart — MonthlyChart has its own card wrapper */}
       <MonthlyChart data={monthlyData} />
+
+      {bankStats && <BankMonthlyStats stats={bankStats} />}
 
       {/* Recent Transactions */}
       <div className="rounded-xl bg-white p-3 shadow-card">
