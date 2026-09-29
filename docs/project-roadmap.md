@@ -82,6 +82,7 @@ This document outlines the development phases and milestones for the Quản Lý 
 - [x] QR image gallery with base64 storage
 - [x] Copy account number to clipboard
 - [x] Download QR image functionality
+- [x] Zalo link preview (OG image) and Web Share API image sharing
 - [x] Active/inactive toggle
 - [x] Reorder QR codes (display_order)
 - [x] Custom Tailwind theme

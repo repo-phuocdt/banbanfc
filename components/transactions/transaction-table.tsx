@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useToast } from '@/components/ui/toast'
 import { deleteTransaction } from '@/app/quan-ly-quy/thu-chi/actions'
+import { TruncatedText } from '@/components/ui/truncated-text'
 
 interface Props {
   transactions: (TransactionWithMember & { running_balance: number })[]
@@ -71,8 +72,11 @@ export function TransactionTable({ transactions, onEdit, isAuthenticated = false
                   {t.type === 'expense' && <CurrencyDisplay amount={t.amount} type="expense" />}
                 </td>
                 <td className="hidden px-3 py-2.5 sm:table-cell">
-                  <div className="max-w-[200px] truncate">{t.description || t.category}</div>
-                  {t.note && <div className="max-w-[200px] truncate text-xs text-gray-400">{t.note}</div>}
+                  <TruncatedText text={t.description || t.category} className="max-w-[200px]" />
+                  {t.bank_content && (
+                    <TruncatedText text={`CK: ${t.bank_content}`} className="max-w-[200px] text-xs text-primary-600" />
+                  )}
+                  {t.note && <TruncatedText text={t.note} className="max-w-[200px] text-xs text-gray-400" />}
                 </td>
                 <td className="hidden px-3 py-2.5 text-gray-600 md:table-cell">{t.member_name || '—'}</td>
                 <td className="hidden px-3 py-2.5 text-right font-medium lg:table-cell">

@@ -151,6 +151,8 @@ Quản Lý Quỹ Đội Bóng is a web-based internal tool for Vietnamese amateu
 - **AC8**: Reorder QR codes by display_order
 - **AC9**: Store QR image as base64 in database with MIME type
 - **AC10**: Display active QR codes prominently, inactive with muted style
+- **AC11**: Sharing the QR page link (e.g. in a Zalo group) shows a link preview built from the first active QR by `display_order`, so members can pay without opening the app — owner: `app/quan-ly-quy/qr-chuyen-tien/opengraph-image.tsx`
+- **AC12**: On mobile, share a QR image directly to chat apps via the Web Share API; unsupported devices get an error toast instead of a fallback — owner: `components/mobile/qr-code-list.tsx`
 
 ---
 
@@ -297,6 +299,7 @@ SUPABASE_SERVICE_ROLE_KEY=...
 - [x] Bank details management
 - [x] Copy account number
 - [x] Download QR images
+- [x] Zalo link preview and mobile image sharing
 - [x] Active/inactive toggle
 - [x] Admin-only RLS policies
 - [x] Custom Tailwind theme

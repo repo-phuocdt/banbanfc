@@ -53,3 +53,12 @@ release-manifest.json
 
 # yarn
 yarn.lock
+
+# AgentKit CLI (project-local)
+/.bin/
+/.agentkit/
+/plans 
+
+# Local database dumps (contain member data)
+/backups/
+

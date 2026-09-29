@@ -2,17 +2,22 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardSwitch } from '@/components/dashboard/dashboard-switch'
 import { Skeleton } from '@/components/ui/skeleton'
+import { requireAdmin } from '@/lib/auth/require-admin'
+import { loadBankMonthlyStats } from '@/lib/bank/load-monthly-stats'
+import { groupBankRows } from '@/lib/utils/group-bank-rows'
 
 async function DashboardContent() {
   const supabase = createClient()
 
   // Aggregate queries in parallel
-  const [incomeRes, expenseRes, membersRes, monthlyRes, recentRes] = await Promise.all([
+  const [incomeRes, expenseRes, membersRes, monthlyRes, recentRes, bankStats] = await Promise.all([
     supabase.from('transactions').select('amount').eq('type', 'income'),
     supabase.from('transactions').select('amount').eq('type', 'expense'),
     supabase.from('members').select('id').eq('status', 'active'),
     supabase.from('transactions').select('date, type, amount').order('date'),
-    supabase.from('transactions').select('*, members(name)').order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10),
+    supabase.from('transactions').select('*, members(name)').order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(30),
+    // Bank statistics are admin-only; everyone else gets null and sees no section.
+    requireAdmin().then(admin => (admin.error ? null : loadBankMonthlyStats(supabase))),
   ])
 
   const totalIncome = (incomeRes.data || []).reduce((s, r) => s + r.amount, 0)
@@ -34,11 +39,12 @@ async function DashboardContent() {
     .sort((a, b) => a.month.localeCompare(b.month))
 
   // Recent transactions
-  const recentTransactions = (recentRes.data || []).map((t: any) => ({
+  // Fetch extra rows so merging a bank transfer's monthly rows still leaves 10 entries.
+  const recentTransactions = groupBankRows((recentRes.data || []).map((t: any) => ({
     ...t,
     member_name: t.members?.name || null,
     members: undefined,
-  }))
+  }))).slice(0, 10)
 
   return (
     <DashboardSwitch
@@ -47,6 +53,7 @@ async function DashboardContent() {
       activeMembers={activeMembers}
       monthlyData={monthlyData}
       recentTransactions={recentTransactions}
+      bankStats={bankStats}
     />
   )
 }

@@ -60,7 +60,8 @@ export function TransactionList({ transactions, onEdit, isAuthenticated = false 
           >
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{t.description || t.category}</p>
+                <p className="line-clamp-2 text-sm font-medium" title={t.description || t.category}>{t.description || t.category}</p>
+                {t.bank_content && <p className="truncate text-xs text-primary-600">CK: {t.bank_content}</p>}
                 <p className="mt-0.5 text-[11px] text-gray-400">
                   <DateDisplay date={t.date} />
                   {t.member_name && ` · ${t.member_name}`}
@@ -112,6 +113,12 @@ export function TransactionList({ transactions, onEdit, isAuthenticated = false 
                 <div>
                   <p className="text-xs text-gray-500">Người</p>
                   <p className="text-sm font-medium">{detailTx.member_name}</p>
+                </div>
+              )}
+              {detailTx.bank_content && (
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-500">Nội dung chuyển khoản</p>
+                  <p className="break-words text-sm font-medium">{detailTx.bank_content}</p>
                 </div>
               )}
             </div>
