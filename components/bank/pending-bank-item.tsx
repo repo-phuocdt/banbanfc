@@ -42,7 +42,7 @@ export function PendingBankItem({ tx, onAssign }: Props) {
           <button
             onClick={() => onAssign(tx)}
             disabled={loading}
-            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-600 disabled:opacity-50"
+            className="rounded-lg bg-primary h-[38px] px-4 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
           >
             Gán thành viên
           </button>
@@ -53,14 +53,14 @@ export function PendingBankItem({ tx, onAssign }: Props) {
         <button
           onClick={() => run(() => recordBankTransactionAs({ bank_transaction_id: tx.id, category }), 'Đã ghi vào Thu chi')}
           disabled={loading}
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-50 disabled:opacity-50"
+          className="rounded-lg border border-gray-300 h-[38px] px-4 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
         >
           {isIncome ? 'Ghi thu' : 'Ghi chi'}
         </button>
         <button
           onClick={() => run(() => ignoreBankTransaction(tx.id), 'Đã bỏ qua giao dịch')}
           disabled={loading}
-          className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+          className="rounded-lg h-[38px] px-4 text-sm font-medium text-gray-500 hover:bg-gray-100 disabled:opacity-50"
         >
           Bỏ qua
         </button>

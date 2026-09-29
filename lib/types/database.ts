@@ -38,6 +38,8 @@ export interface MemberWithTotal extends Member {
 
 export interface TransactionWithMember extends Transaction {
   member_name?: string | null
+  /** Transfer content from the bank; only admins can read it (RLS), null for everyone else. */
+  bank_content?: string | null
 }
 
 export interface QrCode {

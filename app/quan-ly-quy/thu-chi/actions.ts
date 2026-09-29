@@ -6,12 +6,14 @@ import { requireAdmin } from '@/lib/auth/require-admin'
 import { transactionSchema } from '@/lib/validations/schemas'
 import type { ActionResult } from '@/lib/types/action-result'
 import type { Member, TransactionWithMember } from '@/lib/types/database'
+import { groupBankRows } from '@/lib/utils/group-bank-rows'
+import { sanitizeContent } from '@/lib/bank/normalize'
 
 export async function getTransactions(): Promise<TransactionWithMember[]> {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('transactions')
-    .select('*, members(name)')
+    .select('*, members(name), bank_transactions(content)')
     // Newest recorded last (the page reverses it); rows imported in one batch share
     // created_at, so their transaction date keeps them in chronological order.
     .order('created_at', { ascending: true })
@@ -19,11 +21,14 @@ export async function getTransactions(): Promise<TransactionWithMember[]> {
 
   if (error) throw new Error(error.message)
 
-  return (data || []).map((t: any) => ({
+  // One bank transfer is shown as one row even when it paid for several months.
+  return groupBankRows((data || []).map((t: any) => ({
     ...t,
     member_name: t.members?.name || null,
+    bank_content: t.bank_transactions?.content ? sanitizeContent(t.bank_transactions.content) : null,
     members: undefined,
-  }))
+    bank_transactions: undefined,
+  })))
 }
 
 export async function getMembersForDropdown(): Promise<Pick<Member, 'id' | 'name'>[]> {

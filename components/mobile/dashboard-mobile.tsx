@@ -80,7 +80,7 @@ export function DashboardMobile({
           {recentTransactions.map(t => (
             <div key={t.id} className="flex items-center justify-between border-b border-gray-50 pb-2 last:border-0">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{t.description || t.category}</p>
+                <p className="line-clamp-2 text-sm font-medium" title={t.description || t.category}>{t.description || t.category}</p>
                 <p className="text-[11px] text-gray-400">
                   <DateDisplay date={t.date} />
                   {t.member_name && ` · ${t.member_name}`}

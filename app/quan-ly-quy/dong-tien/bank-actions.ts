@@ -37,9 +37,11 @@ export async function getBankInbox(): Promise<{ pending: BankTransaction[]; rece
   if (admin.error) return { pending: [], recent: [] }
   const supabase = createClient()
   const [pendingRes, recentRes] = await Promise.all([
-    supabase.from('bank_transactions').select('*').eq('status', 'pending').order('transaction_date', { ascending: false }),
-    supabase.from('bank_transactions').select('*, transactions(members(name))')
-      .neq('status', 'pending').order('resolved_at', { ascending: false }).limit(30),
+    // Both lists show the newest bank transaction first.
+    supabase.from('bank_transactions').select('*').eq('status', 'pending')
+      .order('transaction_date', { ascending: false }).order('created_at', { ascending: false }),
+    supabase.from('bank_transactions').select('*, transactions(members(name))').neq('status', 'pending')
+      .order('transaction_date', { ascending: false }).order('created_at', { ascending: false }).limit(30),
   ])
   if (pendingRes.error) throw new Error(pendingRes.error.message)
   if (recentRes.error) throw new Error(recentRes.error.message)
