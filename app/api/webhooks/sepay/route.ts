@@ -16,11 +16,22 @@ export const runtime = 'nodejs'
 const ok = () => NextResponse.json({ success: true })
 
 function isAuthorized(header: string | null): boolean {
-  const key = process.env.SEPAY_WEBHOOK_API_KEY
-  if (!key || !header) return false
-  const expected = Buffer.from(`Apikey ${key}`)
-  const actual = Buffer.from(header)
-  return actual.length === expected.length && timingSafeEqual(actual, expected)
+  const key = process.env.SEPAY_WEBHOOK_API_KEY?.trim()
+  if (!key) return false
+  if (!header) {
+    console.warn('[sepay-webhook] unauthorized: missing Authorization header')
+    return false
+  }
+  // SePay sends "Apikey <key>"; tolerate scheme casing and stray whitespace from copy-paste.
+  const match = header.trim().match(/^apikey\s+(.+)$/i)
+  const expected = Buffer.from(key)
+  const actual = Buffer.from(match?.[1].trim() ?? '')
+  const authorized = actual.length === expected.length && timingSafeEqual(actual, expected)
+  if (!authorized) {
+    // Never log the key itself; the shape is enough to tell a wrong key from a wrong header.
+    console.warn('[sepay-webhook] unauthorized', { apikeyScheme: Boolean(match), keyLength: actual.length, expectedLength: expected.length })
+  }
+  return authorized
 }
 
 export async function POST(request: NextRequest) {
