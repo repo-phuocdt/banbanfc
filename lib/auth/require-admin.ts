@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js'
 
 type AdminResult =
   | { user: User; error?: never }
-  | { user?: never; error: ActionResult }
+  | { user?: never; error: Extract<ActionResult, { success: false }> }
 
 export async function requireAdmin(): Promise<AdminResult> {
   const supabase = createClient()

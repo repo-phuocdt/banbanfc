@@ -9,9 +9,12 @@ interface ModalProps {
   title: string
   children: React.ReactNode
   footer?: React.ReactNode
+  size?: 'md' | 'lg'
 }
 
-export function Modal({ open, onClose, title, children, footer }: ModalProps) {
+const SIZE_CLASSES = { md: 'max-w-lg', lg: 'max-w-2xl' }
+
+export function Modal({ open, onClose, title, children, footer, size = 'md' }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -30,7 +33,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="fixed inset-0 z-50 m-auto w-[calc(100%-1.5rem)] max-w-lg rounded-xl bg-white p-0 shadow-xl backdrop:bg-black/50 sm:w-full"
+      className={`fixed inset-0 z-50 m-auto w-[calc(100%-1.5rem)] ${SIZE_CLASSES[size]} rounded-xl bg-white p-0 shadow-xl backdrop:bg-black/50 sm:w-full`}
     >
       <div className="flex items-center justify-between border-b px-6 py-4">
         <h2 className="text-lg font-semibold">{title}</h2>

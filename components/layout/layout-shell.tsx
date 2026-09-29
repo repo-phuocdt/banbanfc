@@ -5,6 +5,7 @@ import { useIsMobile } from '@/hooks/use-is-mobile'
 import { Sidebar } from './sidebar'
 import { MobileLayout } from '@/components/mobile/mobile-layout'
 import { Breadcrumb } from './breadcrumb'
+import { RealtimeRefresh } from '@/components/shared/realtime-refresh'
 
 interface LayoutShellProps {
   user: User | null
@@ -12,6 +13,15 @@ interface LayoutShellProps {
 }
 
 export function LayoutShell({ user, children }: LayoutShellProps) {
+  return (
+    <>
+      <RealtimeRefresh isAdmin={user?.app_metadata?.is_admin === true} />
+      <ShellLayout user={user}>{children}</ShellLayout>
+    </>
+  )
+}
+
+function ShellLayout({ user, children }: LayoutShellProps) {
   const isMobile = useIsMobile()
 
   // SSR: use CSS media queries for initial render to avoid flash

@@ -26,6 +26,33 @@ export const transactionSchema = z.object({
   note: z.string().optional().nullable(),
 })
 
+const monthField = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Tháng phải có dạng YYYY-MM')
+
+export const leaveSchema = z.object({
+  member_id: z.string().uuid('ID thành viên không hợp lệ'),
+  month: monthField,
+  note: z.string().max(200).optional().nullable(),
+})
+
+export const memberIdentitiesSchema = z.object({
+  names: z.array(z.string().trim().min(2, 'Tên chuyển tiền quá ngắn').max(60, 'Tên chuyển tiền quá dài')).max(10),
+  accounts: z.array(z.string().regex(/^\d{6,20}$/, 'Số tài khoản chỉ gồm 6–20 chữ số')).max(10),
+})
+
+export const assignBankSchema = z.object({
+  bank_transaction_id: z.string().uuid(),
+  parts: z.array(z.object({
+    member_id: z.string().uuid('Vui lòng chọn thành viên'),
+    amount: z.number().int().positive('Số tiền phải lớn hơn 0'),
+  })).min(1, 'Chọn ít nhất một thành viên').max(10),
+  remember_name: z.string().trim().max(60).optional().nullable(),
+})
+
+export const resolveBankSchema = z.object({
+  bank_transaction_id: z.string().uuid(),
+  category: z.string().min(1, 'Danh mục không được để trống'),
+})
+
 const ALLOWED_QR_MIMES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const
 
 export const qrCodeSchema = z.object({
