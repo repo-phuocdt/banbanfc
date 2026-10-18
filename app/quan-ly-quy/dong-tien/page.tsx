@@ -1,6 +1,10 @@
 import { Suspense } from 'react'
-import { getContributions, getActiveMembers } from './actions'
+import { getContributions, getActiveMembers, getLeaves } from './actions'
+import { getBankInbox } from './bank-actions'
+import { getMonthlyFees } from './fee-actions'
+import { BankInbox } from '@/components/bank/bank-inbox'
 import { ContributionSwitch } from '@/components/contributions/contribution-switch'
+import { FeeSettings } from '@/components/contributions/fee-settings'
 import { Skeleton } from '@/components/ui/skeleton'
 import { createClient } from '@/lib/supabase/server'
 
@@ -17,12 +21,22 @@ function MatrixSkeleton() {
 
 async function MatrixLoader() {
   const supabase = createClient()
-  const [contributions, members, { data: { user } }] = await Promise.all([
+  const [contributions, members, leaves, fees, { data: { user } }] = await Promise.all([
     getContributions(),
     getActiveMembers(),
+    getLeaves(),
+    getMonthlyFees(),
     supabase.auth.getUser(),
   ])
-  return <ContributionSwitch contributions={contributions} members={members} isAuthenticated={!!user} />
+  const isAdmin = user?.app_metadata?.is_admin === true
+  const inbox = isAdmin ? await getBankInbox() : null
+  return (
+    <>
+      {isAdmin && <FeeSettings fees={fees} />}
+      {inbox && <BankInbox pending={inbox.pending} recent={inbox.recent} members={members} />}
+      <ContributionSwitch contributions={contributions} members={members} leaves={leaves} fees={fees} isAuthenticated={!!user} />
+    </>
+  )
 }
 
 export default function DongTienPage() {

@@ -2,10 +2,14 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import type { Contribution, Member } from '@/lib/types/database'
+import type { Contribution, Member, MemberLeave, MonthlyFee } from '@/lib/types/database'
 import { formatCurrency, formatMonth } from '@/lib/utils/format'
+import { monthOf } from '@/lib/bank/month'
+import { feeForMonth } from '@/lib/bank/fee-schedule'
+import { buildMonthRange, leaveKey } from '@/lib/utils/month-range'
 import { StandaloneSelect } from '@/components/ui/select-field'
 import { PaymentModal } from './payment-modal'
+import { MatrixCell } from './matrix-cell'
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Tất cả' },
@@ -17,10 +21,12 @@ const STATUS_OPTIONS = [
 interface Props {
   contributions: Contribution[]
   members: Member[]
+  leaves: MemberLeave[]
+  fees: MonthlyFee[]
   isAuthenticated?: boolean
 }
 
-export function ContributionMatrix({ contributions, members, isAuthenticated = false }: Props) {
+export function ContributionMatrix({ contributions, members, leaves, fees, isAuthenticated = false }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -50,36 +56,12 @@ export function ContributionMatrix({ contributions, members, isAuthenticated = f
     return map
   }, [contributions])
 
-  const months = useMemo(() => {
-    if (contributions.length === 0) {
-      const now = new Date()
-      return [`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`]
-    }
-    const allMonths = contributions.map(c => c.month)
-    const earliest = allMonths.sort()[0]
-    const now = new Date()
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-    const end = currentMonth > allMonths[allMonths.length - 1] ? currentMonth : allMonths[allMonths.length - 1]
+  const leaveSet = useMemo(() => new Set(leaves.map(l => leaveKey(l.member_id, l.month))), [leaves])
 
-    const result: string[] = []
-    const [startY, startM] = earliest.split('-').map(Number)
-    const [endY, endM] = end.split('-').map(Number)
-    let y = startY, m = startM
-    while (y < endY || (y === endY && m <= endM)) {
-      result.push(`${y}-${String(m).padStart(2, '0')}`)
-      m++
-      if (m > 12) { m = 1; y++ }
-    }
-
-    // Extend with extra months added by user
-    for (let i = 0; i < extraMonths; i++) {
-      result.push(`${y}-${String(m).padStart(2, '0')}`)
-      m++
-      if (m > 12) { m = 1; y++ }
-    }
-
-    return result
-  }, [contributions, extraMonths])
+  const months = useMemo(
+    () => buildMonthRange([...contributions.map(c => c.month), ...leaves.map(l => l.month)], extraMonths),
+    [contributions, leaves, extraMonths],
+  )
 
   // Calculate total per member for sorting
   const memberTotals = useMemo(() => {
@@ -161,6 +143,7 @@ export function ContributionMatrix({ contributions, members, isAuthenticated = f
                 .reduce((sum, c) => sum + c.amount, 0)
               const monthCount = memberContribs?.size || 0
               const isInactive = member.status === 'inactive'
+              const joinedMonth = monthOf(new Date(member.joined_at))
 
               return (
                 <tr key={member.id} className={`transition-colors ${isInactive ? 'opacity-50' : ''}`}>
@@ -170,22 +153,17 @@ export function ContributionMatrix({ contributions, members, isAuthenticated = f
                   <td className={`sticky left-[48px] z-10 bg-white px-3 py-2 font-medium border-r border-gray-100 ${isInactive ? 'line-through' : ''}`}>
                     {member.name}
                   </td>
-                  {months.map(month => {
-                    const contrib = memberContribs?.get(month)
-                    return (
-                      <td
-                        key={month}
-                        onClick={() => handleCellClick(member, month)}
-                        className={`px-2 py-2 text-center transition-colors ${isAuthenticated ? 'cursor-pointer' : 'cursor-default'} ${
-                          contrib
-                            ? `bg-income-bg text-income-text font-medium ${isAuthenticated ? 'hover:bg-emerald-200' : ''}`
-                            : `bg-gray-50 text-gray-300 ${isAuthenticated ? 'hover:bg-gray-100' : ''}`
-                        }`}
-                      >
-                        {contrib ? formatCurrency(contrib.amount) : '—'}
-                      </td>
-                    )
-                  })}
+                  {months.map(month => (
+                    <MatrixCell
+                      key={month}
+                      contribution={memberContribs?.get(month)}
+                      fee={feeForMonth(fees, month)}
+                      onLeave={leaveSet.has(leaveKey(member.id, month))}
+                      beforeJoin={month < joinedMonth}
+                      clickable={isAuthenticated}
+                      onClick={() => handleCellClick(member, month)}
+                    />
+                  ))}
                   {isAuthenticated && <td className="px-1 py-2" />}
                   <td className="px-3 py-2 text-right font-bold text-income-text">
                     {formatCurrency(total)}
@@ -206,6 +184,8 @@ export function ContributionMatrix({ contributions, members, isAuthenticated = f
         member={selectedMember}
         month={selectedMonth}
         contribution={selectedContribution}
+        defaultAmount={feeForMonth(fees, selectedMonth)}
+        isLeave={!!selectedMember && leaveSet.has(leaveKey(selectedMember.id, selectedMonth))}
       />
     </div>
   )

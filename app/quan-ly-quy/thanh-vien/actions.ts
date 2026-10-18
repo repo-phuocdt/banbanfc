@@ -33,18 +33,18 @@ export async function getMembers(): Promise<MemberWithTotal[]> {
   }))
 }
 
-export async function createMember(formData: unknown): Promise<ActionResult> {
+export async function createMember(formData: unknown): Promise<ActionResult<{ id: string }>> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = memberSchema.safeParse(formData)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
 
   const supabase = createClient()
-  const { error } = await supabase.from('members').insert({
+  const { data, error } = await supabase.from('members').insert({
     name: parsed.data.name,
     status: parsed.data.status,
     note: parsed.data.note || null,
-  })
+  }).select('id').single()
 
   if (error) {
     if (error.code === '23505') return { success: false, error: 'Tên thành viên đã tồn tại' }
@@ -52,7 +52,7 @@ export async function createMember(formData: unknown): Promise<ActionResult> {
   }
 
   revalidatePath('/quan-ly-quy/thanh-vien')
-  return { success: true }
+  return { success: true, data: { id: data.id } }
 }
 
 export async function updateMember(id: string, formData: unknown): Promise<ActionResult> {

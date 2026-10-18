@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/require-admin'
 import { contributionSchema } from '@/lib/validations/schemas'
 import type { ActionResult } from '@/lib/types/action-result'
-import type { Contribution, Member } from '@/lib/types/database'
+import type { Contribution, Member, MemberLeave } from '@/lib/types/database'
 
 export async function getContributions(): Promise<Contribution[]> {
   const supabase = createClient()
@@ -13,6 +13,13 @@ export async function getContributions(): Promise<Contribution[]> {
     .from('contributions')
     .select('*')
     .order('month')
+  if (error) throw new Error(error.message)
+  return data || []
+}
+
+export async function getLeaves(): Promise<MemberLeave[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase.from('member_leaves').select('*').order('month')
   if (error) throw new Error(error.message)
   return data || []
 }
@@ -43,6 +50,10 @@ export async function createContribution(formData: unknown): Promise<ActionResul
   }
 
   const supabase = createClient()
+
+  const { data: leave } = await supabase.from('member_leaves').select('id')
+    .eq('member_id', parsed.data.member_id).eq('month', parsed.data.month).maybeSingle()
+  if (leave) return { success: false, error: 'Tháng này đang đánh dấu nghỉ, hãy bỏ nghỉ trước' }
 
   // Insert contribution
   const { data: contrib, error } = await supabase.from('contributions').insert({
@@ -82,6 +93,16 @@ export async function updateContribution(id: string, formData: unknown): Promise
   if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
 
   const supabase = createClient()
+  const { data: linked, error: linkedError } = await supabase
+    .from('transactions').select('id, bank_transaction_id').eq('contribution_id', id)
+  if (linkedError) return { success: false, error: linkedError.message }
+  if (linked.some(t => t.bank_transaction_id)) {
+    return { success: false, error: 'Khoản đóng từ chuyển khoản ngân hàng: dùng "Hủy ghi nhận" trong mục Giao dịch ngân hàng' }
+  }
+  if (linked.length > 1) {
+    return { success: false, error: 'Khoản đóng gồm nhiều giao dịch, vui lòng sửa trong Thu chi' }
+  }
+
   const { error } = await supabase.from('contributions').update({
     amount: parsed.data.amount,
     note: parsed.data.note || null,
@@ -104,6 +125,13 @@ export async function deleteContribution(id: string): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const supabase = createClient()
+
+  const { data: bankLinked, error: linkError } = await supabase.from('transactions').select('id')
+    .eq('contribution_id', id).not('bank_transaction_id', 'is', null).limit(1)
+  if (linkError) return { success: false, error: linkError.message }
+  if (bankLinked.length) {
+    return { success: false, error: 'Khoản đóng từ chuyển khoản ngân hàng: dùng "Hủy ghi nhận" trong mục Giao dịch ngân hàng' }
+  }
 
   // Delete linked transaction first
   await supabase.from('transactions').delete().eq('contribution_id', id)

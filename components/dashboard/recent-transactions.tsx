@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import { CurrencyDisplay } from '@/components/shared/currency-display'
 import { DateDisplay } from '@/components/shared/date-display'
 import type { TransactionWithMember } from '@/lib/types/database'
+import { TruncatedText } from '@/components/ui/truncated-text'
 
 interface Props {
   transactions: TransactionWithMember[]
@@ -24,7 +25,7 @@ export function RecentTransactions({ transactions }: Props) {
         {transactions.map(t => (
           <div key={t.id} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{t.description || t.category}</p>
+              <TruncatedText text={t.description || t.category} className="text-sm font-medium" />
               <p className="text-xs text-gray-400">
                 <DateDisplay date={t.date} />
                 {t.member_name && ` — ${t.member_name}`}

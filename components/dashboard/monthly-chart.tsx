@@ -11,9 +11,12 @@ interface MonthlyData {
 
 interface Props {
   data: MonthlyData[]
+  title?: string
+  incomeLabel?: string
+  expenseLabel?: string
 }
 
-export function MonthlyChart({ data }: Props) {
+export function MonthlyChart({ data, title = 'Thu chi theo tháng', incomeLabel = 'Thu', expenseLabel = 'Chi' }: Props) {
   const chartData = data.map(d => ({
     ...d,
     name: formatMonthShort(d.month),
@@ -21,7 +24,7 @@ export function MonthlyChart({ data }: Props) {
 
   return (
     <div className="rounded-xl bg-white p-4 shadow-card sm:p-6">
-      <h2 className="mb-4 text-lg font-semibold">Thu chi theo tháng</h2>
+      <h2 className="mb-4 text-lg font-semibold">{title}</h2>
       <div className="h-[250px] sm:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData}>
@@ -34,10 +37,10 @@ export function MonthlyChart({ data }: Props) {
             <Tooltip
               formatter={(value, name) => [
                 formatCurrency(Number(value)),
-                name === 'income' ? 'Thu' : 'Chi',
+                name === 'income' ? incomeLabel : expenseLabel,
               ]}
             />
-            <Legend formatter={v => (v === 'income' ? 'Thu' : 'Chi')} />
+            <Legend formatter={v => (v === 'income' ? incomeLabel : expenseLabel)} />
             <Bar dataKey="income" fill="#059669" radius={[4, 4, 0, 0]} />
             <Bar dataKey="expense" fill="#E11D48" radius={[4, 4, 0, 0]} />
           </BarChart>

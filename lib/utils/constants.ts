@@ -1,5 +1,3 @@
-export const DEFAULT_CONTRIBUTION = 200000
-
 export const INCOME_CATEGORIES = [
   'Quỹ hàng tháng',
   'Góp thêm',
@@ -27,3 +25,6 @@ export const STATUS_COLORS: Record<string, string> = {
   inactive: 'bg-rose-50 text-rose-700',
   paused: 'bg-amber-50 text-amber-700',
 }
+
+// How many months ahead a contribution may be recorded.
+export const MAX_MONTHS_AHEAD = 12

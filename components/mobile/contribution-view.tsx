@@ -1,18 +1,23 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Check, X } from 'lucide-react'
-import type { Contribution, Member } from '@/lib/types/database'
+import { Check, Moon, X } from 'lucide-react'
+import type { Contribution, Member, MemberLeave, MonthlyFee } from '@/lib/types/database'
 import { formatCurrency, formatMonth } from '@/lib/utils/format'
+import { buildMonthRange, leaveKey } from '@/lib/utils/month-range'
+import { monthOf } from '@/lib/bank/month'
+import { feeForMonth } from '@/lib/bank/fee-schedule'
 import { PaymentModal } from '@/components/contributions/payment-modal'
 
 interface ContributionViewProps {
   contributions: Contribution[]
   members: Member[]
+  leaves: MemberLeave[]
+  fees: MonthlyFee[]
   isAuthenticated?: boolean
 }
 
-export function ContributionView({ contributions, members, isAuthenticated = false }: ContributionViewProps) {
+export function ContributionView({ contributions, members, leaves, fees, isAuthenticated = false }: ContributionViewProps) {
   const [selectedMonth, setSelectedMonth] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
@@ -28,32 +33,17 @@ export function ContributionView({ contributions, members, isAuthenticated = fal
     return map
   }, [contributions])
 
+  const leaveSet = useMemo(() => new Set(leaves.map(l => leaveKey(l.member_id, l.month))), [leaves])
+
   // Generate month list
-  const months = useMemo(() => {
-    if (contributions.length === 0) {
-      const now = new Date()
-      return [`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`]
-    }
-    const allMonths = contributions.map(c => c.month).sort()
-    const earliest = allMonths[0]
-    const now = new Date()
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-    const end = currentMonth > allMonths[allMonths.length - 1] ? currentMonth : allMonths[allMonths.length - 1]
+  const months = useMemo(
+    () => buildMonthRange([...contributions.map(c => c.month), ...leaves.map(l => l.month)]),
+    [contributions, leaves],
+  )
 
-    const result: string[] = []
-    const [startY, startM] = earliest.split('-').map(Number)
-    const [endY, endM] = end.split('-').map(Number)
-    let y = startY, m = startM
-    while (y < endY || (y === endY && m <= endM)) {
-      result.push(`${y}-${String(m).padStart(2, '0')}`)
-      m++
-      if (m > 12) { m = 1; y++ }
-    }
-    return result
-  }, [contributions])
-
-  // Default to current month
-  const activeMonth = selectedMonth || months[months.length - 1]
+  // Default to current month (the range may extend into future leave or prepaid months)
+  const currentMonth = monthOf(new Date())
+  const activeMonth = selectedMonth || (months.includes(currentMonth) ? currentMonth : months[months.length - 1])
 
   // Filter active members
   const activeMembers = useMemo(() => {
@@ -65,6 +55,8 @@ export function ContributionView({ contributions, members, isAuthenticated = fal
         || a.name.localeCompare(b.name, 'vi')
       )
   }, [members])
+
+  const activeFee = feeForMonth(fees, activeMonth)
 
   const activeMonthRef = useRef<HTMLButtonElement>(null)
 
@@ -107,6 +99,9 @@ export function ContributionView({ contributions, members, isAuthenticated = fal
       <div className="space-y-1.5">
         {activeMembers.map(member => {
           const contrib = matrix.get(member.id)?.get(activeMonth)
+          const onLeave = !contrib && leaveSet.has(leaveKey(member.id, activeMonth))
+          const partial = !!contrib && contrib.amount < activeFee
+          const beforeJoin = !contrib && activeMonth < monthOf(new Date(member.joined_at))
           const isInactive = member.status === 'inactive'
 
           return (
@@ -125,6 +120,8 @@ export function ContributionView({ contributions, members, isAuthenticated = fal
                   }`}>
                     {contrib ? (
                       <Check size={16} className="text-emerald-600" />
+                    ) : onLeave ? (
+                      <Moon size={16} className="text-gray-500" />
                     ) : (
                       <X size={16} className="text-gray-400" />
                     )}
@@ -135,11 +132,11 @@ export function ContributionView({ contributions, members, isAuthenticated = fal
                 </div>
                 <div className="text-right">
                   {contrib ? (
-                    <span className="text-sm font-semibold text-emerald-600">
-                      {formatCurrency(contrib.amount)}
+                    <span className={`text-sm font-semibold ${partial ? 'text-amber-600' : 'text-emerald-600'}`}>
+                      {formatCurrency(contrib.amount)}{partial ? ' (thiếu)' : ''}
                     </span>
                   ) : (
-                    <span className="text-xs text-gray-400">Chưa đóng</span>
+                    <span className="text-xs text-gray-400">{onLeave ? 'Nghỉ' : beforeJoin ? 'Chưa vào đội' : 'Chưa đóng'}</span>
                   )}
                 </div>
               </div>
@@ -154,6 +151,8 @@ export function ContributionView({ contributions, members, isAuthenticated = fal
         member={selectedMember}
         month={activeMonth}
         contribution={selectedContribution}
+        defaultAmount={activeFee}
+        isLeave={!!selectedMember && leaveSet.has(leaveKey(selectedMember.id, activeMonth))}
       />
     </div>
   )

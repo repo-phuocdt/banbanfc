@@ -567,6 +567,7 @@ WITH CHECK (is_admin());
 
 **Key Changes**:
 - SELECT policies are PUBLIC (anyone can read)
+- The QR page's OG image (`app/quan-ly-quy/qr-chuyen-tien/opengraph-image.tsx`) queries with a cookie-less anon client because link-preview crawlers (Zalo, Facebook) carry no session; it depends on `qr_codes` SELECT staying public. Making that policy private breaks link previews silently (the image falls back to a no-QR card).
 - INSERT/UPDATE/DELETE policies require is_admin() = true
 - Replaces old authenticated-only approach
 - is_admin claim comes from Supabase Auth metadata
