@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { BankTransaction, Member } from '@/lib/types/database'
-import { MAX_AUTO_CONTRIBUTION } from '@/lib/utils/constants'
 import { applyIncome } from './apply-income'
 import { guessExpenseCategory, isReversal } from './expense-category'
 import { matchMember, type BankIdentity } from './match-member'
@@ -15,7 +14,7 @@ export const PENDING_REASONS = {
   none: 'Không nhận diện được người chuyển',
   ambiguous: 'Khớp nhiều thành viên',
   invalid_amount: 'Số tiền không hợp lệ',
-  over_threshold: 'Số tiền lớn, cần xác nhận',
+  non_standard_amount: 'Số tiền khác mức quỹ tháng, cần admin xử lý',
   overflow: 'Vượt quá số tháng được đóng trước',
   reversal: 'Có thể là hoàn tiền hoặc tra soát',
 } as const
@@ -48,8 +47,8 @@ export async function processBankTransaction(
   const eligible = new Set(members.filter(m => m.status !== 'inactive' && m.status !== 'deleted').map(m => m.id))
   const match = matchMember(tx.content, identitiesRes.data as BankIdentity[], eligible, fundHolderName)
   if (match.memberId === null) return markPending(db, tx.id, PENDING_REASONS[match.reason])
-
-  const result = await applyIncome(db, tx, [{ memberId: match.memberId, amount: tx.amount }], match.via, MAX_AUTO_CONTRIBUTION)
+  // Only an exact monthly fee is auto-applied; any other amount is split or recorded by an admin.
+  const result = await applyIncome(db, tx, [{ memberId: match.memberId, amount: tx.amount }], match.via, true)
   if (!result.ok) return markPending(db, tx.id, PENDING_REASONS[result.reason])
 
   const memberName = members.find(m => m.id === match.memberId)?.name ?? ''

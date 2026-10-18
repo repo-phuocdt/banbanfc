@@ -34,6 +34,11 @@ export const leaveSchema = z.object({
   note: z.string().max(200).optional().nullable(),
 })
 
+export const monthlyFeeSchema = z.object({
+  effective_month: monthField,
+  amount: z.number({ invalid_type_error: 'Số tiền phải là số' }).int('Số tiền phải là số nguyên').positive('Số tiền phải lớn hơn 0'),
+})
+
 export const memberIdentitiesSchema = z.object({
   names: z.array(z.string().trim().min(2, 'Tên chuyển tiền quá ngắn').max(60, 'Tên chuyển tiền quá dài')).max(10),
   accounts: z.array(z.string().regex(/^\d{6,20}$/, 'Số tài khoản chỉ gồm 6–20 chữ số')).max(10),

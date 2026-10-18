@@ -2,9 +2,10 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import type { Contribution, Member, MemberLeave } from '@/lib/types/database'
+import type { Contribution, Member, MemberLeave, MonthlyFee } from '@/lib/types/database'
 import { formatCurrency, formatMonth } from '@/lib/utils/format'
 import { monthOf } from '@/lib/bank/month'
+import { feeForMonth } from '@/lib/bank/fee-schedule'
 import { buildMonthRange, leaveKey } from '@/lib/utils/month-range'
 import { StandaloneSelect } from '@/components/ui/select-field'
 import { PaymentModal } from './payment-modal'
@@ -21,10 +22,11 @@ interface Props {
   contributions: Contribution[]
   members: Member[]
   leaves: MemberLeave[]
+  fees: MonthlyFee[]
   isAuthenticated?: boolean
 }
 
-export function ContributionMatrix({ contributions, members, leaves, isAuthenticated = false }: Props) {
+export function ContributionMatrix({ contributions, members, leaves, fees, isAuthenticated = false }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -155,6 +157,7 @@ export function ContributionMatrix({ contributions, members, leaves, isAuthentic
                     <MatrixCell
                       key={month}
                       contribution={memberContribs?.get(month)}
+                      fee={feeForMonth(fees, month)}
                       onLeave={leaveSet.has(leaveKey(member.id, month))}
                       beforeJoin={month < joinedMonth}
                       clickable={isAuthenticated}
@@ -181,6 +184,7 @@ export function ContributionMatrix({ contributions, members, leaves, isAuthentic
         member={selectedMember}
         month={selectedMonth}
         contribution={selectedContribution}
+        defaultAmount={feeForMonth(fees, selectedMonth)}
         isLeave={!!selectedMember && leaveSet.has(leaveKey(selectedMember.id, selectedMonth))}
       />
     </div>

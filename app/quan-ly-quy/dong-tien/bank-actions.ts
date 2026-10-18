@@ -15,7 +15,7 @@ export interface BankTransactionWithMembers extends BankTransaction {
 
 const REASON_MESSAGES = {
   invalid_amount: 'Số tiền không hợp lệ',
-  over_threshold: 'Số tiền vượt ngưỡng',
+  non_standard_amount: 'Số tiền khác mức quỹ tháng',
   overflow: 'Vượt quá 12 tháng đóng trước, hãy chia bớt cho người khác hoặc ghi "Góp thêm"',
 } as const
 
@@ -73,7 +73,7 @@ export async function assignBankTransaction(formData: unknown): Promise<ActionRe
 
   try {
     const incomeParts = parts.map(p => ({ memberId: p.member_id, amount: p.amount }))
-    const result = await applyIncome(supabase, tx, incomeParts, 'admin', null)
+    const result = await applyIncome(supabase, tx, incomeParts, 'admin', false)
     if (!result.ok) return { success: false, error: REASON_MESSAGES[result.reason] }
   } catch (error) {
     return { success: false, error: (error as Error).message }

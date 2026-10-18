@@ -8,9 +8,9 @@ const base: AllocateInput = {
   refMonth: '2026-09',
   paidByMonth: {},
   leaveMonths: new Set(),
-  fee: 200000,
+  feeFor: () => 200000,
   maxAhead: 12,
-  maxAutoAmount: 600000,
+  exactFee: false,
 }
 
 function months(input: Partial<AllocateInput>) {
@@ -56,16 +56,33 @@ test('new member: months before joining count as settled', () => {
   assert.deepEqual(months({ amount: 400000, joinedMonth: '2026-10' }), ['2026-10:200000', '2026-11:200000'])
 })
 
-test('amount above auto threshold is rejected', () => {
-  assert.deepEqual(allocate({ ...base, amount: 800000 }), { ok: false, reason: 'over_threshold' })
+test('auto mode accepts exactly one month fee', () => {
+  assert.deepEqual(months({ exactFee: true }), ['2026-08:200000'])
+})
+
+test('auto mode rejects any other amount', () => {
+  assert.deepEqual(allocate({ ...base, amount: 50000, exactFee: true }), { ok: false, reason: 'non_standard_amount' })
+  assert.deepEqual(allocate({ ...base, amount: 400000, exactFee: true }), { ok: false, reason: 'non_standard_amount' })
+})
+
+test('auto mode compares with the fee of the month being filled', () => {
+  const feeFor = (m: string) => (m >= '2027-01' ? 250000 : 200000)
+  assert.deepEqual(months({ refMonth: '2027-01', feeFor, exactFee: true }), ['2026-12:200000'])
+  const paid = { '2026-12': 200000 }
+  assert.deepEqual(months({ refMonth: '2027-01', paidByMonth: paid, amount: 250000, feeFor, exactFee: true }), ['2027-01:250000'])
+})
+
+test('each month is filled up to its own fee', () => {
+  const feeFor = (m: string) => (m >= '2026-09' ? 250000 : 200000)
+  assert.deepEqual(months({ amount: 450000, feeFor }), ['2026-08:200000', '2026-09:250000'])
 })
 
 test('admin assignment beyond the 12-month cap overflows', () => {
-  assert.deepEqual(allocate({ ...base, amount: 3000000, maxAutoAmount: null }), { ok: false, reason: 'overflow' })
+  assert.deepEqual(allocate({ ...base, amount: 3000000 }), { ok: false, reason: 'overflow' })
 })
 
-test('admin assignment without threshold fills many months', () => {
-  assert.equal(months({ amount: 1200000, maxAutoAmount: null }).length, 6)
+test('admin assignment fills many months', () => {
+  assert.equal(months({ amount: 1200000 }).length, 6)
 })
 
 test('invalid amounts are rejected', () => {

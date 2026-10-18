@@ -6,7 +6,6 @@ import { Modal } from '@/components/ui/modal'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useToast } from '@/components/ui/toast'
 import { createContribution, updateContribution, deleteContribution } from '@/app/quan-ly-quy/dong-tien/actions'
-import { DEFAULT_CONTRIBUTION } from '@/lib/utils/constants'
 import { formatMonth } from '@/lib/utils/format'
 import { LeaveToggleButton } from './leave-toggle-button'
 import type { Contribution, Member } from '@/lib/types/database'
@@ -17,6 +16,8 @@ interface Props {
   member: Member | null
   month: string
   contribution: Contribution | null
+  /** Fee owed for the month, prefilled for a new payment. */
+  defaultAmount: number
   isLeave?: boolean
 }
 
@@ -25,23 +26,23 @@ interface FormValues {
   note: string
 }
 
-export function PaymentModal({ open, onClose, member, month, contribution, isLeave = false }: Props) {
+export function PaymentModal({ open, onClose, member, month, contribution, defaultAmount, isLeave = false }: Props) {
   const { showToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const isEdit = !!contribution
 
   const { register, handleSubmit, reset } = useForm<FormValues>({
-    defaultValues: { amount: DEFAULT_CONTRIBUTION, note: '' },
+    defaultValues: { amount: defaultAmount, note: '' },
   })
 
   useEffect(() => {
     if (contribution) {
       reset({ amount: contribution.amount, note: contribution.note || '' })
     } else {
-      reset({ amount: DEFAULT_CONTRIBUTION, note: '' })
+      reset({ amount: defaultAmount, note: '' })
     }
-  }, [contribution, reset])
+  }, [contribution, defaultAmount, reset])
 
   const onSubmit = async (data: FormValues) => {
     if (!member) return

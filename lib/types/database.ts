@@ -65,6 +65,11 @@ export interface MemberLeave {
   created_at: string
 }
 
+export interface MonthlyFee {
+  effective_month: string // 'YYYY-MM'; applies from this month until the next row
+  amount: number
+}
+
 export interface MemberBankIdentity {
   id: string
   member_id: string

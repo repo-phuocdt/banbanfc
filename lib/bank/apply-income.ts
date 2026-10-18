@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { BankTransaction } from '@/lib/types/database'
-import { DEFAULT_CONTRIBUTION, MAX_MONTHS_AHEAD } from '@/lib/utils/constants'
+import { MAX_MONTHS_AHEAD } from '@/lib/utils/constants'
 import { allocate } from './allocate'
+import { feeForMonth, loadFeeSchedule } from './fee-schedule'
 import { addMonths, monthOf } from './month'
 
 export interface IncomePart {
@@ -18,7 +19,7 @@ export interface AppliedAllocation {
 
 export type ApplyIncomeResult =
   | { ok: true; allocations: AppliedAllocation[] }
-  | { ok: false; reason: 'invalid_amount' | 'over_threshold' | 'overflow' }
+  | { ok: false; reason: 'invalid_amount' | 'non_standard_amount' | 'overflow' }
 
 const MAX_ATTEMPTS = 3
 
@@ -31,11 +32,13 @@ export async function applyIncome(
   tx: BankTransaction,
   parts: IncomePart[],
   matchedVia: string,
-  maxAutoAmount: number | null,
+  exactFee: boolean,
 ): Promise<ApplyIncomeResult> {
   const refMonth = monthOf(new Date(tx.transaction_date))
   const fromMonth = addMonths(refMonth, -1)
   const memberIds = parts.map(p => p.memberId)
+  const schedule = await loadFeeSchedule(db)
+  const feeFor = (month: string) => feeForMonth(schedule, month)
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const [contribRes, leaveRes, memberRes] = await Promise.all([
@@ -59,7 +62,7 @@ export async function applyIncome(
 
       const result = allocate({
         amount: part.amount, refMonth, paidByMonth, leaveMonths, joinedMonth,
-        fee: DEFAULT_CONTRIBUTION, maxAhead: MAX_MONTHS_AHEAD, maxAutoAmount,
+        feeFor, maxAhead: MAX_MONTHS_AHEAD, exactFee,
       })
       if (!result.ok) return result
       allocations.push(...result.allocations.map(a => ({

@@ -2,21 +2,22 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, Moon, X } from 'lucide-react'
-import type { Contribution, Member, MemberLeave } from '@/lib/types/database'
+import type { Contribution, Member, MemberLeave, MonthlyFee } from '@/lib/types/database'
 import { formatCurrency, formatMonth } from '@/lib/utils/format'
 import { buildMonthRange, leaveKey } from '@/lib/utils/month-range'
 import { monthOf } from '@/lib/bank/month'
-import { DEFAULT_CONTRIBUTION } from '@/lib/utils/constants'
+import { feeForMonth } from '@/lib/bank/fee-schedule'
 import { PaymentModal } from '@/components/contributions/payment-modal'
 
 interface ContributionViewProps {
   contributions: Contribution[]
   members: Member[]
   leaves: MemberLeave[]
+  fees: MonthlyFee[]
   isAuthenticated?: boolean
 }
 
-export function ContributionView({ contributions, members, leaves, isAuthenticated = false }: ContributionViewProps) {
+export function ContributionView({ contributions, members, leaves, fees, isAuthenticated = false }: ContributionViewProps) {
   const [selectedMonth, setSelectedMonth] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
@@ -54,6 +55,8 @@ export function ContributionView({ contributions, members, leaves, isAuthenticat
         || a.name.localeCompare(b.name, 'vi')
       )
   }, [members])
+
+  const activeFee = feeForMonth(fees, activeMonth)
 
   const activeMonthRef = useRef<HTMLButtonElement>(null)
 
@@ -97,7 +100,7 @@ export function ContributionView({ contributions, members, leaves, isAuthenticat
         {activeMembers.map(member => {
           const contrib = matrix.get(member.id)?.get(activeMonth)
           const onLeave = !contrib && leaveSet.has(leaveKey(member.id, activeMonth))
-          const partial = !!contrib && contrib.amount < DEFAULT_CONTRIBUTION
+          const partial = !!contrib && contrib.amount < activeFee
           const beforeJoin = !contrib && activeMonth < monthOf(new Date(member.joined_at))
           const isInactive = member.status === 'inactive'
 
@@ -148,6 +151,7 @@ export function ContributionView({ contributions, members, leaves, isAuthenticat
         member={selectedMember}
         month={activeMonth}
         contribution={selectedContribution}
+        defaultAmount={activeFee}
         isLeave={!!selectedMember && leaveSet.has(leaveKey(selectedMember.id, activeMonth))}
       />
     </div>

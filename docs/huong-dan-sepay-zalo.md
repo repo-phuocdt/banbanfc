@@ -6,6 +6,7 @@ Tài liệu dành cho admin/thủ quỹ khi đưa tính năng lên production. C
 1. **Backup trước** (Supabase → Database → Backups, hoặc `pg_dump`).
 2. Mở SQL editor, chạy toàn bộ `005_bank_auto_contributions.sql`. File chạy lại nhiều lần không lỗi.
    Tùy chọn: chạy tiếp `006_backfill_leave_months.sql` để đánh dấu mọi tháng chưa đóng đến hết T09/2026 là "Nghỉ" (dữ liệu cũ không còn bị tính nợ). Chạy lại không tạo trùng.
+   Sau đó chạy `007_monthly_fees.sql`: tạo bảng mức quỹ theo tháng, tự điền 200.000đ từ tháng đóng đầu tiên. Đổi mức quỹ ở mục "Mức quỹ" trên trang Đóng tiền (admin).
 3. Kiểm tra: đăng xuất rồi mở app, mục "Giao dịch ngân hàng" không được hiện; dữ liệu `member_bank_identities`/`bank_transactions` chỉ admin đọc được.
 
 ## 2. Biến môi trường (Vercel → Settings → Environment Variables)
@@ -30,7 +31,7 @@ Trang Thành viên → Sửa → nhập **Tên chuyển tiền** (vd `DINH TAN P
 - **Chờ xử lý** (trang Đóng tiền, chỉ admin thấy): gán thành viên (chia được cho nhiều người), ghi thu/chi khác, hoặc bỏ qua.
 - **Đã ghi gần đây → Hủy ghi nhận**: gỡ mọi khoản đóng/thu chi do giao dịch tạo ra và đưa về hàng chờ. Khoản đóng từ ngân hàng không sửa/xóa trực tiếp trong bảng đóng tiền.
 - **Tháng nghỉ**: bấm ô tháng chưa đóng → "Đánh dấu nghỉ". Tháng nghỉ không bị tính và được bỏ qua khi chia tiền.
-- Quy tắc tự chia: bắt đầu từ tháng trước tháng chuyển (không tính các tháng trước ngày vào đội), bù tháng đóng thiếu trước, phần lẻ cộng sang tháng sau, tối đa 12 tháng; khoản > 600.000đ, khớp nhiều người hoặc có chữ "hoàn tiền/tra soát" luôn vào hàng chờ.
+- Quy tắc tự ghi: chỉ khoản **bằng đúng mức quỹ** của tháng đầu tiên cần đóng (tính từ tháng trước tháng chuyển, bỏ qua tháng nghỉ và các tháng trước ngày vào đội) mới được ghi tự động. Số tiền khác (vd tiền trận), khớp nhiều người hoặc có chữ "hoàn tiền/tra soát" luôn vào hàng chờ để admin chia hoặc ghi thu khác.
 
 ## 7. Tắt khẩn cấp
 Tắt webhook trên SePay là dừng ghi tự động ngay; mọi thứ quay về nhập tay như cũ. Dữ liệu cũ không bị ảnh hưởng.

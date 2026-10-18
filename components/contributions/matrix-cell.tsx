@@ -1,9 +1,10 @@
 import type { Contribution } from '@/lib/types/database'
 import { formatCurrency } from '@/lib/utils/format'
-import { DEFAULT_CONTRIBUTION } from '@/lib/utils/constants'
 
 interface Props {
   contribution?: Contribution
+  /** Fee owed for this month. */
+  fee: number
   onLeave: boolean
   beforeJoin: boolean
   clickable: boolean
@@ -11,10 +12,10 @@ interface Props {
 }
 
 /** One month cell of the desktop contribution matrix. */
-export function MatrixCell({ contribution, onLeave, beforeJoin, clickable, onClick }: Props) {
+export function MatrixCell({ contribution, fee, onLeave, beforeJoin, clickable, onClick }: Props) {
   const hover = (cls: string) => (clickable ? cls : '')
   const style = contribution
-    ? contribution.amount < DEFAULT_CONTRIBUTION
+    ? contribution.amount < fee
       ? `bg-amber-50 text-amber-700 font-medium ${hover('hover:bg-amber-100')}`
       : `bg-income-bg text-income-text font-medium ${hover('hover:bg-emerald-200')}`
     : onLeave

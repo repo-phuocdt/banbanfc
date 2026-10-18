@@ -1,5 +1,3 @@
-export const DEFAULT_CONTRIBUTION = 200000
-
 export const INCOME_CATEGORIES = [
   'Quỹ hàng tháng',
   'Góp thêm',
@@ -27,9 +25,6 @@ export const STATUS_COLORS: Record<string, string> = {
   inactive: 'bg-rose-50 text-rose-700',
   paused: 'bg-amber-50 text-amber-700',
 }
-
-// Transfers above this amount are not auto-applied; an admin confirms them.
-export const MAX_AUTO_CONTRIBUTION = 3 * DEFAULT_CONTRIBUTION
 
 // How many months ahead a contribution may be recorded.
 export const MAX_MONTHS_AHEAD = 12
