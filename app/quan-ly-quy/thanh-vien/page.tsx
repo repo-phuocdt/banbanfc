@@ -16,7 +16,7 @@ function MemberTableSkeleton() {
 }
 
 async function MemberTableLoader() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const [members, { data: { user } }] = await Promise.all([
     getMembers(),
     supabase.auth.getUser(),

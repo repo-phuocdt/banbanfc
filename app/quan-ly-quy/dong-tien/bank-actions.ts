@@ -24,7 +24,7 @@ function revalidateFund() {
 }
 
 async function loadPending(id: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase.from('bank_transactions').select('*').eq('id', id).maybeSingle<BankTransaction>()
   if (error) return { error: error.message }
   if (!data || data.status !== 'pending') return { error: 'Giao dịch đã được xử lý' }
@@ -35,7 +35,7 @@ async function loadPending(id: string) {
 export async function getBankInbox(): Promise<{ pending: BankTransaction[]; recent: BankTransactionWithMembers[] }> {
   const admin = await requireAdmin()
   if (admin.error) return { pending: [], recent: [] }
-  const supabase = createClient()
+  const supabase = await createClient()
   const [pendingRes, recentRes] = await Promise.all([
     // Both lists show the newest bank transaction first.
     supabase.from('bank_transactions').select('*').eq('status', 'pending')
@@ -57,7 +57,7 @@ export async function assignBankTransaction(formData: unknown): Promise<ActionRe
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = assignBankSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
   const { bank_transaction_id, parts, remember_name } = parsed.data
 
   if (new Set(parts.map(p => p.member_id)).size !== parts.length) {
@@ -94,7 +94,7 @@ export async function recordBankTransactionAs(formData: unknown): Promise<Action
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = resolveBankSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
   const loaded = await loadPending(parsed.data.bank_transaction_id)
   if ('error' in loaded) return { success: false, error: loaded.error! }
@@ -111,7 +111,7 @@ export async function recordBankTransactionAs(formData: unknown): Promise<Action
 export async function ignoreBankTransaction(id: string): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase.from('bank_transactions')
     .update({ status: 'ignored', resolved_at: new Date().toISOString() })
     .eq('id', id).eq('status', 'pending').select('id')
@@ -126,7 +126,7 @@ export async function ignoreBankTransaction(id: string): Promise<ActionResult> {
 export async function revertBankTransaction(id: string): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase.rpc('revert_bank_transaction', { p_bank_tx_id: id })
   if (error) {
     if (error.message.includes('bank_tx_already_pending')) return { success: false, error: 'Giao dịch đang ở hàng chờ' }

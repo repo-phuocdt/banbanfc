@@ -10,9 +10,9 @@ export async function markLeave(formData: unknown): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = leaveSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: paid } = await supabase.from('contributions').select('id')
     .eq('member_id', parsed.data.member_id).eq('month', parsed.data.month).maybeSingle()
   if (paid) return { success: false, error: 'Tháng này đã đóng tiền. Hãy hủy khoản đóng trước khi đánh dấu nghỉ' }
@@ -35,9 +35,9 @@ export async function unmarkLeave(formData: unknown): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = leaveSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase.from('member_leaves').delete()
     .eq('member_id', parsed.data.member_id).eq('month', parsed.data.month)
   if (error) return { success: false, error: error.message }

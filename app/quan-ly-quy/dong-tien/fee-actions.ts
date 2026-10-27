@@ -9,7 +9,7 @@ import type { ActionResult } from '@/lib/types/action-result'
 import type { MonthlyFee } from '@/lib/types/database'
 
 export async function getMonthlyFees(): Promise<MonthlyFee[]> {
-  return loadFeeSchedule(createClient())
+  return loadFeeSchedule(await createClient())
 }
 
 /** Sets the fee from a month onward; saving an existing month replaces its amount. */
@@ -17,9 +17,9 @@ export async function saveMonthlyFee(formData: unknown): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = monthlyFeeSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase.from('monthly_fees').upsert(parsed.data, { onConflict: 'effective_month' })
   if (error) return { success: false, error: error.message }
 
@@ -31,7 +31,7 @@ export async function deleteMonthlyFee(effectiveMonth: string): Promise<ActionRe
   const admin = await requireAdmin()
   if (admin.error) return admin.error
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { count, error: countError } = await supabase.from('monthly_fees').select('*', { count: 'exact', head: true })
   if (countError) return { success: false, error: countError.message }
   if ((count ?? 0) <= 1) return { success: false, error: 'Phải giữ lại ít nhất một mức quỹ' }
