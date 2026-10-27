@@ -10,7 +10,7 @@ import { groupBankRows } from '@/lib/utils/group-bank-rows'
 import { sanitizeContent } from '@/lib/bank/normalize'
 
 export async function getTransactions(): Promise<TransactionWithMember[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('transactions')
     .select('*, members(name), bank_transactions(content)')
@@ -32,7 +32,7 @@ export async function getTransactions(): Promise<TransactionWithMember[]> {
 }
 
 export async function getMembersForDropdown(): Promise<Pick<Member, 'id' | 'name'>[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data } = await supabase
     .from('members')
     .select('id, name')
@@ -45,9 +45,9 @@ export async function createTransaction(formData: unknown): Promise<ActionResult
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = transactionSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase.from('transactions').insert({
     date: parsed.data.date || new Date().toISOString(),
     type: parsed.data.type,
@@ -66,7 +66,7 @@ export async function createTransaction(formData: unknown): Promise<ActionResult
 
 const BANK_LINKED_ERROR = 'Giao dịch từ chuyển khoản ngân hàng: dùng "Hủy ghi nhận" trong trang Đóng tiền'
 
-async function isBankLinked(supabase: ReturnType<typeof createClient>, id: string): Promise<boolean | string> {
+async function isBankLinked(supabase: Awaited<ReturnType<typeof createClient>>, id: string): Promise<boolean | string> {
   const { data, error } = await supabase.from('transactions').select('bank_transaction_id').eq('id', id).maybeSingle()
   if (error) return error.message
   return !!data?.bank_transaction_id
@@ -76,9 +76,9 @@ export async function updateTransaction(id: string, formData: unknown): Promise<
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = transactionSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const linked = await isBankLinked(supabase, id)
   if (linked) return { success: false, error: typeof linked === 'string' ? linked : BANK_LINKED_ERROR }
 
@@ -101,7 +101,7 @@ export async function updateTransaction(id: string, formData: unknown): Promise<
 export async function deleteTransaction(id: string): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
-  const supabase = createClient()
+  const supabase = await createClient()
   const linked = await isBankLinked(supabase, id)
   if (linked) return { success: false, error: typeof linked === 'string' ? linked : BANK_LINKED_ERROR }
 

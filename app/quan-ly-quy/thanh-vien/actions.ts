@@ -8,7 +8,7 @@ import type { ActionResult } from '@/lib/types/action-result'
 import type { MemberWithTotal } from '@/lib/types/database'
 
 export async function getMembers(): Promise<MemberWithTotal[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: members, error } = await supabase
     .from('members')
     .select('*')
@@ -37,9 +37,9 @@ export async function createMember(formData: unknown): Promise<ActionResult<{ id
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = memberSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase.from('members').insert({
     name: parsed.data.name,
     status: parsed.data.status,
@@ -59,9 +59,9 @@ export async function updateMember(id: string, formData: unknown): Promise<Actio
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = memberSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase.from('members').update({
     name: parsed.data.name,
     status: parsed.data.status,
@@ -77,7 +77,7 @@ export async function updateMember(id: string, formData: unknown): Promise<Actio
 export async function deleteMember(id: string): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Soft delete
   const { error } = await supabase.from('members').update({
@@ -98,7 +98,7 @@ export async function updateMemberStatus(id: string, status: string): Promise<Ac
   const parsed = memberStatusSchema.safeParse(status)
   if (!parsed.success) return { success: false, error: 'Trạng thái không hợp lệ' }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase.from('members').update({
     status: parsed.data,
     updated_at: new Date().toISOString(),

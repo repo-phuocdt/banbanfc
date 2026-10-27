@@ -36,7 +36,7 @@ export const leaveSchema = z.object({
 
 export const monthlyFeeSchema = z.object({
   effective_month: monthField,
-  amount: z.number({ invalid_type_error: 'Số tiền phải là số' }).int('Số tiền phải là số nguyên').positive('Số tiền phải lớn hơn 0'),
+  amount: z.number({ error: 'Số tiền phải là số' }).int('Số tiền phải là số nguyên').positive('Số tiền phải lớn hơn 0'),
 })
 
 export const memberIdentitiesSchema = z.object({

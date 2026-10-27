@@ -16,7 +16,7 @@ export interface MemberIdentities {
 export async function getMemberIdentities(memberId: string): Promise<MemberIdentities | null> {
   const admin = await requireAdmin()
   if (admin.error) return null
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase.from('member_bank_identities').select('kind, value')
     .eq('member_id', memberId).order('created_at')
   if (error) return null
@@ -31,14 +31,14 @@ export async function saveMemberIdentities(memberId: string, formData: unknown):
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = memberIdentitiesSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
   const wanted = [
     ...Array.from(new Set(parsed.data.names.map(normalizeText).filter(v => v.length >= 2))).map(value => ({ kind: 'name', value })),
     ...Array.from(new Set(parsed.data.accounts.map(digitsOnly))).map(value => ({ kind: 'account', value })),
   ]
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: current, error: readError } = await supabase.from('member_bank_identities')
     .select('id, kind, value').eq('member_id', memberId)
   if (readError) return { success: false, error: readError.message }

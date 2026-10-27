@@ -7,7 +7,7 @@ type AdminResult =
   | { user?: never; error: Extract<ActionResult, { success: false }> }
 
 export async function requireAdmin(): Promise<AdminResult> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) {
     return { error: { success: false, error: 'Bạn chưa đăng nhập' } }

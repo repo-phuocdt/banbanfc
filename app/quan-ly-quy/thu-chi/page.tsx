@@ -16,7 +16,7 @@ function TransactionSkeleton() {
 }
 
 async function TransactionLoader() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const [transactions, members, { data: { user } }] = await Promise.all([
     getTransactions(),
     getMembersForDropdown(),

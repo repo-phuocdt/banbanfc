@@ -11,7 +11,7 @@ import type { QrCode } from '@/lib/types/database'
 const UNDEFINED_TABLE = '42P01'
 
 export async function getQrCodes(): Promise<QrCode[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('qr_codes')
     .select('*')
@@ -27,7 +27,7 @@ export async function getQrCodes(): Promise<QrCode[]> {
 }
 
 export async function getPrimaryQrCode(): Promise<QrCode | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('qr_codes')
     .select('*')
@@ -50,9 +50,9 @@ export async function createQrCode(formData: unknown): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = qrCodeSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase.from('qr_codes').insert({
     title: parsed.data.title,
     bank_name: parsed.data.bank_name || null,
@@ -75,9 +75,9 @@ export async function updateQrCode(id: string, formData: unknown): Promise<Actio
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = qrCodeSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase
     .from('qr_codes')
     .update({
@@ -103,7 +103,7 @@ export async function deleteQrCode(id: string): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase.from('qr_codes').delete().eq('id', id)
   if (error) return { success: false, error: error.message }
 

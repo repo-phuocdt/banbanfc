@@ -24,7 +24,7 @@ function QrSkeleton() {
 }
 
 async function QrLoader() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const [qrCodes, { data: { user } }] = await Promise.all([
     getQrCodes(),
     supabase.auth.getUser(),

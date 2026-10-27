@@ -7,7 +7,7 @@ import { loadBankMonthlyStats } from '@/lib/bank/load-monthly-stats'
 import { groupBankRows } from '@/lib/utils/group-bank-rows'
 
 async function DashboardContent() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Aggregate queries in parallel
   const [incomeRes, expenseRes, membersRes, monthlyRes, recentRes, bankStats] = await Promise.all([
