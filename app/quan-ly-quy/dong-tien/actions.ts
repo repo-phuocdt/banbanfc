@@ -8,7 +8,7 @@ import type { ActionResult } from '@/lib/types/action-result'
 import type { Contribution, Member, MemberLeave } from '@/lib/types/database'
 
 export async function getContributions(): Promise<Contribution[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('contributions')
     .select('*')
@@ -18,14 +18,14 @@ export async function getContributions(): Promise<Contribution[]> {
 }
 
 export async function getLeaves(): Promise<MemberLeave[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase.from('member_leaves').select('*').order('month')
   if (error) throw new Error(error.message)
   return data || []
 }
 
 export async function getActiveMembers(): Promise<Member[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('members')
     .select('*')
@@ -39,7 +39,7 @@ export async function createContribution(formData: unknown): Promise<ActionResul
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = contributionSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
   // Validate month not too far in future (max 12 months ahead)
   const now = new Date()
@@ -49,7 +49,7 @@ export async function createContribution(formData: unknown): Promise<ActionResul
     return { success: false, error: 'Tháng không hợp lệ (tối đa 12 tháng trong tương lai)' }
   }
 
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: leave } = await supabase.from('member_leaves').select('id')
     .eq('member_id', parsed.data.member_id).eq('month', parsed.data.month).maybeSingle()
@@ -90,9 +90,9 @@ export async function updateContribution(id: string, formData: unknown): Promise
   const admin = await requireAdmin()
   if (admin.error) return admin.error
   const parsed = contributionSchema.safeParse(formData)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: linked, error: linkedError } = await supabase
     .from('transactions').select('id, bank_transaction_id').eq('contribution_id', id)
   if (linkedError) return { success: false, error: linkedError.message }
@@ -124,7 +124,7 @@ export async function updateContribution(id: string, formData: unknown): Promise
 export async function deleteContribution(id: string): Promise<ActionResult> {
   const admin = await requireAdmin()
   if (admin.error) return admin.error
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: bankLinked, error: linkError } = await supabase.from('transactions').select('id')
     .eq('contribution_id', id).not('bank_transaction_id', 'is', null).limit(1)

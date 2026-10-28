@@ -20,7 +20,7 @@ function MatrixSkeleton() {
 }
 
 async function MatrixLoader() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const [contributions, members, leaves, fees, { data: { user } }] = await Promise.all([
     getContributions(),
     getActiveMembers(),
